@@ -115,6 +115,27 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /api/my-reservations:
+    post:
+      tags: [Public]
+      summary: List reservations for a contact email
+      operationId: myReservations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MyReservationsRequest"
+      responses:
+        "200":
+          description: Matching reservations (may be empty)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MyReservationsResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
   /api/reports:
     get:
       tags: [Public]
@@ -389,6 +410,37 @@ components:
           type: string
         prefix:
           type: string
+
+    MyReservationsRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+
+    MyReservation:
+      allOf:
+        - $ref: "#/components/schemas/Reservation"
+        - type: object
+          properties:
+            status:
+              type: string
+              enum: [reserved, deployed]
+
+    MyReservationsResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+        email:
+          type: string
+        count:
+          type: integer
+        reservations:
+          type: array
+          items:
+            $ref: "#/components/schemas/MyReservation"
 
     ReportRepeaterRow:
       type: object

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, Coffee, Heart, Mail } from "lucide-react";
+import { partners } from "@/lib/partners";
 
 const supporters = ["ma7", "n5msy", "talwah", "simon", "kyra", "terry", "mike", "rg3120", "Mike Baldwin"];
 
@@ -90,20 +91,28 @@ export function SiteFooter() {
             <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-500 dark:text-ink-400">
               Partners
             </p>
-            <a
-              href="https://heltec.org/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="surface mt-4 inline-flex items-center gap-3 px-4 py-3 transition hover:-translate-y-0.5"
-            >
-              <Image
-                src="https://heltec.org/wp-content/uploads/2021/05/heltec-logo.png"
-                alt="Heltec Automation"
-                width={140}
-                height={40}
-                className="h-8 w-auto dark:brightness-0 dark:invert"
-              />
-            </a>
+            <p className="mt-3 text-sm text-ink-600 dark:text-ink-300">
+              Thanks to these businesses for helping us with the mesh.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3 lg:justify-end">
+              {partners.map((partner) => (
+                <a
+                  key={partner.name}
+                  href={partner.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="surface inline-flex items-center px-4 py-3 transition hover:-translate-y-0.5"
+                >
+                  <Image
+                    src={partner.logo}
+                    alt={partner.name}
+                    width={partner.logoWidth}
+                    height={partner.logoHeight}
+                    className="h-8 w-auto dark:brightness-0 dark:invert"
+                  />
+                </a>
+              ))}
+            </div>
           </div>
         </div>
 

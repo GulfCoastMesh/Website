@@ -123,3 +123,15 @@ export function parseReleaseBody(
   }
   return { ok: true, body: { prefix, email } };
 }
+
+export function parseLookupBody(
+  data: unknown,
+): { ok: true; body: { email: string } } | { ok: false; error: string } {
+  if (!data || typeof data !== "object") return { ok: false, error: "Invalid request body." };
+  const d = data as Record<string, unknown>;
+  const email = String(d.email ?? "").trim().slice(0, 254);
+  if (!email || !email.includes("@")) {
+    return { ok: false, error: "Valid email is required." };
+  }
+  return { ok: true, body: { email } };
+}

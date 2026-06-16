@@ -8,11 +8,11 @@ const STORAGE_KEY = "gcm-theme";
 const listeners = new Set<() => void>();
 
 function getServerSnapshot(): Theme {
-  return "dark";
+  return "light";
 }
 
 function getSnapshot(): Theme {
-  if (typeof document === "undefined") return "dark";
+  if (typeof document === "undefined") return "light";
   if (document.documentElement.classList.contains("light")) return "light";
   if (document.documentElement.classList.contains("dark")) return "dark";
   try {
@@ -21,7 +21,7 @@ function getSnapshot(): Theme {
   } catch {
     /* ignore */
   }
-  return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+  return "light";
 }
 
 function subscribe(cb: () => void) {

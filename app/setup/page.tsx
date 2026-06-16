@@ -22,6 +22,21 @@ import {
   Check,
   ArrowUpRight,
 } from 'lucide-react';
+import {
+  FirmwareVersionPicker,
+  resolvePickerFirmwareVersion,
+} from '@/components/setup-firmware-version';
+import type { FirmwareRole } from '@/lib/meshcore-firmware';
+import { extractPrefix, isUsablePrefix } from '@/lib/meshbuddy';
+import { generateIdentityKeypair, parsePublicKeyFromSerial } from '@/lib/meshcore-identity';
+import { getSetupDevice, listSupportedSetupDevices, type SetupDeviceId } from '@/lib/setup-devices';
+import {
+  closeSerialPort,
+  enterNrfDfu,
+  fetchErasePackage,
+  flashNrfPackage,
+  openSerialPort,
+} from '@/lib/nrf52-flash';
 
 // Real flashing dependencies (dynamic import to avoid SSR issues if any, but "use client" handles it)
 import { ESPLoader, Transport } from 'esptool-js';
@@ -71,8 +86,14 @@ function getServerBrowserKindSnapshot(): BrowserKind {
   return 'unknown';
 }
 
-// Flip to true when the in-browser setup wizard is ready for production.
-const SETUP_WIZARD_ENABLED = false;
+// Flip to false to show a placeholder instead of the in-browser setup wizard.
+const SETUP_WIZARD_ENABLED = true;
+
+const MAX_IDENTITY_ATTEMPTS = 15;
+const DEFAULT_REPEATER_LAT = 30.3;
+const DEFAULT_REPEATER_LON = -91.2;
+const REPEATER_SPREADING_FACTOR = 7;
+const DEFAULT_REPEATER_CODING_RATE = 6;
 
 function SetupComingSoon() {
   return (
@@ -106,7 +127,8 @@ function SetupWizard() {
 
   const [step, setStep] = useState('intro');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [selectedDevice, setSelectedDevice] = useState('');
+  const [selectedDevice, setSelectedDevice] = useState<SetupDeviceId | ''>('');
+  const [nrfEraseBeforeFlash, setNrfEraseBeforeFlash] = useState(true);
   const [flashProgress, setFlashProgress] = useState(0);
   const [settingsProgress, setSettingsProgress] = useState({ current: 0, total: 0, label: '' });
   const [errorMsg, setErrorMsg] = useState('');
@@ -131,6 +153,27 @@ function SetupWizard() {
   const [serialStatus, setSerialStatus] = useState<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected');
   const [copiedUrl, setCopiedUrl] = useState(false);
 
+  type FirmwareVersionPrefs = {
+    versions: string[];
+    latest: string | null;
+    loading: boolean;
+    error: string;
+    useLatest: boolean;
+    selectedVersion: string;
+  };
+
+  const emptyFirmwarePrefs = (): FirmwareVersionPrefs => ({
+    versions: [],
+    latest: null,
+    loading: false,
+    error: '',
+    useLatest: true,
+    selectedVersion: '',
+  });
+
+  const [clientFirmware, setClientFirmware] = useState<FirmwareVersionPrefs>(emptyFirmwarePrefs);
+  const [repeaterFirmware, setRepeaterFirmware] = useState<FirmwareVersionPrefs>(emptyFirmwarePrefs);
+
   // Hardware Refs (for actual logic)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const portRef = useRef<any>(null);
@@ -144,6 +187,8 @@ function SetupWizard() {
   const pendingTerminalLogsRef = useRef<string[]>([]);
   const terminalFlushScheduledRef = useRef<boolean>(false);
   const terminalEndRef = useRef<HTMLDivElement>(null);
+  const showTerminalRef = useRef(false);
+  const lastFlashProgressUpdateRef = useRef(0);
   const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null);
   const keepReading = useRef<boolean>(true);
   const backgroundReaderRunningRef = useRef<boolean>(false);
@@ -166,8 +211,80 @@ function SetupWizard() {
     lon: -95.5,
     height: '',
     email: '',
-    password: ''
+    password: '',
+    codingRate: String(DEFAULT_REPEATER_CODING_RATE),
   });
+  const [reservedPrefix, setReservedPrefix] = useState<string | null>(null);
+  const [reservedPublicKey, setReservedPublicKey] = useState<string | null>(null);
+
+  const loadFirmwareVersions = async (role: FirmwareRole) => {
+    const setter = role === 'client' ? setClientFirmware : setRepeaterFirmware;
+    setter((prev) => ({ ...prev, loading: true, error: '' }));
+
+    try {
+      const response = await fetch(`/api/meshcore/releases?role=${role}`);
+      const data = (await response.json()) as {
+        latest?: string | null;
+        versions?: string[];
+        error?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to load MeshCore releases.');
+      }
+
+      setter((prev) => ({
+        ...prev,
+        loading: false,
+        versions: data.versions ?? [],
+        latest: data.latest ?? null,
+        selectedVersion: data.latest ?? prev.selectedVersion,
+      }));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to load MeshCore releases.';
+      setter((prev) => ({ ...prev, loading: false, error: message }));
+    }
+  };
+
+  useEffect(() => {
+    if (step === 'client_select_device' && clientFirmware.versions.length === 0 && !clientFirmware.loading) {
+      void loadFirmwareVersions('client');
+    }
+    if (step === 'repeater_select_device' && repeaterFirmware.versions.length === 0 && !repeaterFirmware.loading) {
+      void loadFirmwareVersions('repeater');
+    }
+  }, [step, clientFirmware.loading, clientFirmware.versions.length, repeaterFirmware.loading, repeaterFirmware.versions.length]);
+
+  const getActiveFirmwarePrefs = (role: FirmwareRole) => (role === 'client' ? clientFirmware : repeaterFirmware);
+
+  const getResolvedFirmwareVersion = (role: FirmwareRole) => {
+    const prefs = getActiveFirmwarePrefs(role);
+    return resolvePickerFirmwareVersion({
+      useLatest: prefs.useLatest,
+      latestVersion: prefs.latest,
+      selectedVersion: prefs.selectedVersion,
+    });
+  };
+
+  const renderFirmwareVersionPicker = (role: FirmwareRole) => {
+    const prefs = getActiveFirmwarePrefs(role);
+    const setter = role === 'client' ? setClientFirmware : setRepeaterFirmware;
+
+    return (
+      <FirmwareVersionPicker
+        versions={prefs.versions}
+        latestVersion={prefs.latest}
+        loading={prefs.loading}
+        error={prefs.error}
+        useLatest={prefs.useLatest}
+        selectedVersion={prefs.selectedVersion}
+        onUseLatestChange={(useLatest) => setter((prev) => ({ ...prev, useLatest }))}
+        onSelectedVersionChange={(selectedVersion) =>
+          setter((prev) => ({ ...prev, selectedVersion, useLatest: false }))
+        }
+      />
+    );
+  };
 
   useEffect(() => {
     if (!isMapDragging) return;
@@ -183,23 +300,34 @@ function SetupWizard() {
     };
   }, [isMapDragging]);
 
+  useEffect(() => {
+    showTerminalRef.current = showTerminal;
+    if (showTerminal) {
+      setTerminalLogs([...terminalLogsRef.current]);
+    }
+  }, [showTerminal]);
+
   // Update real logs state from ref
   const addLog = (msg: string) => {
-    pendingTerminalLogsRef.current.push(msg);
+    terminalLogsRef.current = [...terminalLogsRef.current, msg].slice(-200);
+
+    // Avoid re-rendering the whole wizard on every bootloader line while the terminal is closed.
+    if (!showTerminalRef.current) return;
     if (terminalFlushScheduledRef.current) return;
 
     terminalFlushScheduledRef.current = true;
     window.setTimeout(() => {
       terminalFlushScheduledRef.current = false;
-      const pendingLogs = pendingTerminalLogsRef.current.splice(0);
-      if (pendingLogs.length === 0) return;
-
-      terminalLogsRef.current = [...terminalLogsRef.current, ...pendingLogs].slice(-200);
       setTerminalLogs([...terminalLogsRef.current]);
-    }, 50);
+    }, 100);
   };
 
   const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+  const yieldToMain = () =>
+    new Promise<void>((resolve) => {
+      window.setTimeout(resolve, 0);
+    });
 
   const waitForReaderRelease = async () => {
     let waitCount = 0;
@@ -513,12 +641,13 @@ function SetupWizard() {
       commands.push({ command: `set lon ${repeaterConfig.lon.toFixed(6)}`, timeoutMs: 3000, retries: 3, allowTimeout: true, requireReply: false });
     }
 
-    commands.push({ command: "reboot", timeoutMs: 1500, retries: 2, allowTimeout: true, requireReply: false });
     return commands;
   };
 
   const getRepeaterCommandLabel = (command: string) => {
     if (command === "reboot") return "Rebooting repeater";
+    if (command === "get public.key") return "Reading public key";
+    if (command.startsWith("set prv.key")) return "Programming identity key";
     if (command.startsWith("set name")) return "Setting node name";
     if (command === "get name") return "Verifying node name";
     if (command.startsWith("password")) return "Setting admin password";
@@ -527,32 +656,181 @@ function SetupWizard() {
     return "Sending repeater setting";
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fetchPublicKeyFromDevice = async (selectedPort: any) => {
+    addLog("[CMD] > get public.key\n");
+    await writeSerialLine(selectedPort, "get public.key");
+    const response = await readSerialResponse(selectedPort, 3500);
+    if (response.lines.length > 0) {
+      addLog(`[CMD] < ${response.lines.join(" | ")}\n`);
+    }
+    return parsePublicKeyFromSerial(response.lines);
+  };
+
+  const fetchPrefixAvailability = async (prefix: string) => {
+    const response = await fetch(`/api/meshbuddy/prefix/${encodeURIComponent(prefix)}`);
+    const data = (await response.json()) as {
+      available?: boolean;
+      reason?: string;
+      message?: string;
+      error?: string;
+    };
+    if (!response.ok) {
+      throw new Error(data.error || "MeshBuddy prefix check failed.");
+    }
+    return data;
+  };
+
+  const submitPrefixReservation = async (prefix: string) => {
+    const email = repeaterConfig.email.trim();
+    const name = repeaterConfig.name.trim() || `GCM-${prefix}`;
+    const lat = repeaterConfig.locationSet ? repeaterConfig.lat : DEFAULT_REPEATER_LAT;
+    const lon = repeaterConfig.locationSet ? repeaterConfig.lon : DEFAULT_REPEATER_LON;
+    const altitude = Number(repeaterConfig.height);
+    const response = await fetch("/api/meshbuddy/reserve", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prefix,
+        name,
+        email,
+        lat,
+        lon,
+        altitude: Number.isFinite(altitude) ? altitude : 0,
+        source: "setup-wizard",
+      }),
+    });
+    const data = (await response.json()) as { error?: string; message?: string };
+    if (!response.ok) {
+      const error = new Error(data.error || "MeshBuddy reservation failed.");
+      (error as Error & { status?: number }).status = response.status;
+      throw error;
+    }
+    return data;
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const programIdentityOnDevice = async (selectedPort: any) => {
+    const keypair = await generateIdentityKeypair();
+    addLog(`[IDENTITY] Programming new key (target prefix ${keypair.prefix})...\n`);
+    await runSerialCommand(selectedPort, {
+      command: `set prv.key ${keypair.privateKeyHex}`,
+      timeoutMs: 4000,
+      retries: 3,
+      allowTimeout: true,
+      requireReply: false,
+    });
+    await runSerialCommand(selectedPort, {
+      command: "reboot",
+      timeoutMs: 1500,
+      retries: 2,
+      allowTimeout: true,
+      requireReply: false,
+    });
+    await sleep(2500);
+    await wakeSerialCli(selectedPort);
+    return keypair;
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ensureRepeaterPrefixReserved = async (
+    selectedPort: any,
+    onStep: (label: string) => void,
+    onStepComplete: (label: string) => void,
+  ) => {
+    let identityRebooted = false;
+
+    for (let attempt = 0; attempt < MAX_IDENTITY_ATTEMPTS; attempt++) {
+      await yieldToMain();
+      onStep("Reading public key");
+      const publicKeyHex = await fetchPublicKeyFromDevice(selectedPort);
+      onStepComplete("Reading public key");
+
+      const prefix = extractPrefix(publicKeyHex);
+      addLog(`[IDENTITY] Device prefix: ${prefix}\n`);
+
+      if (!isUsablePrefix(prefix)) {
+        onStep("Programming new identity");
+        await programIdentityOnDevice(selectedPort);
+        onStepComplete("Programming new identity");
+        identityRebooted = true;
+        continue;
+      }
+
+      onStep("Checking prefix on MeshBuddy");
+      const availability = await fetchPrefixAvailability(prefix);
+      onStepComplete("Checking prefix on MeshBuddy");
+
+      if (!availability.available) {
+        addLog(
+          `[IDENTITY] Prefix ${prefix} unavailable (${availability.reason ?? "taken"}) — generating new key...\n`,
+        );
+        onStep("Programming new identity");
+        await programIdentityOnDevice(selectedPort);
+        onStepComplete("Programming new identity");
+        identityRebooted = true;
+        continue;
+      }
+
+      try {
+        onStep("Reserving prefix on MeshBuddy");
+        await submitPrefixReservation(prefix);
+        onStepComplete("Reserving prefix on MeshBuddy");
+        addLog(`[IDENTITY] Prefix ${prefix} reserved on MeshBuddy.\n`);
+        return { prefix, publicKey: publicKeyHex, identityRebooted };
+      } catch (err) {
+        if ((err as Error & { status?: number }).status === 409) {
+          addLog(`[IDENTITY] Prefix ${prefix} was taken during reserve — retrying...\n`);
+          onStep("Programming new identity");
+          await programIdentityOnDevice(selectedPort);
+          onStepComplete("Programming new identity");
+          identityRebooted = true;
+          continue;
+        }
+        throw err;
+      }
+    }
+
+    throw new Error(
+      `Could not find an available prefix after ${MAX_IDENTITY_ATTEMPTS} attempts. Reserve manually at meshbuddy.gulfcoastmesh.org or ask in Discord.`,
+    );
+  };
+
+  const getRepeaterCodingRate = () => {
+    const codingRate = Number.parseInt(repeaterConfig.codingRate, 10);
+    if (!Number.isInteger(codingRate) || codingRate < 5 || codingRate > 8) {
+      throw new Error("Coding rate must be an integer between 5 and 8.");
+    }
+    return codingRate;
+  };
+
   const applyRepeaterRadioProfile = async (selectedPort: unknown) => {
+    const codingRate = getRepeaterCodingRate();
     const verifyRadioCommand: SerialCommandSpec = {
       command: "get radio",
       timeoutMs: 3000,
       retries: 3,
-      expectedResponseParts: ["910.525", "62.5", "9", "7"]
+      expectedResponseParts: ["910.525", "62.5", String(REPEATER_SPREADING_FACTOR), String(codingRate)],
     };
 
     try {
       await runSerialCommand(selectedPort, {
-        command: "set radio 910.525,62.5,9,7",
+        command: `set radio 910.525,62.5,${REPEATER_SPREADING_FACTOR},${codingRate}`,
         timeoutMs: 3000,
         retries: 3,
         allowTimeout: true,
-        requireReply: false
+        requireReply: false,
       });
       await runSerialCommand(selectedPort, verifyRadioCommand);
     } catch (err) {
       addLog(`[CMD] Comma radio syntax did not verify: ${(err as Error).message}\n`);
       addLog("[CMD] Trying space-separated radio syntax...\n");
       await runSerialCommand(selectedPort, {
-        command: "set radio 910.525 62.5 9 7",
+        command: `set radio 910.525 62.5 ${REPEATER_SPREADING_FACTOR} ${codingRate}`,
         timeoutMs: 3000,
         retries: 3,
         allowTimeout: true,
-        requireReply: false
+        requireReply: false,
       });
       await runSerialCommand(selectedPort, verifyRadioCommand);
     }
@@ -569,14 +847,19 @@ function SetupWizard() {
     }
 
     setErrorMsg('');
+    setShowMapModal(false);
+    setSettingsProgress({ current: 0, total: 1, label: 'Starting…' });
+    goTo('repeater_applying');
     setIsProcessing(true);
     let configApplied = false;
 
     try {
+      await yieldToMain();
       await stopBackgroundReader();
       const commands = buildRepeaterSerialCommands();
-      const totalSettingsSteps = 2 + commands.length;
+      const totalSettingsSteps = 2 + commands.length + 8 + 1;
       let completedSettingsSteps = 0;
+      let identityRebooted = false;
 
       const updateProgress = (label: string) => {
         setSettingsProgress({ current: completedSettingsSteps, total: totalSettingsSteps, label });
@@ -591,17 +874,41 @@ function SetupWizard() {
       await wakeSerialCli(selectedPort);
       completeProgressStep("MeshCore CLI ready");
       addLog("\n[CONFIG] Applying repeater serial settings...\n");
-      addLog("[CONFIG] US profile -> 910.525MHz / 62.5kHz / SF9 / CR7\n");
+      addLog(
+        `[CONFIG] US profile -> 910.525MHz / 62.5kHz / SF${REPEATER_SPREADING_FACTOR} / CR${getRepeaterCodingRate()}\n`,
+      );
 
       updateProgress("Applying radio profile");
       await applyRepeaterRadioProfile(selectedPort);
       completeProgressStep("Radio profile verified");
+      await yieldToMain();
 
       for (const command of commands) {
         const label = getRepeaterCommandLabel(command.command);
         updateProgress(label);
         await runSerialCommand(selectedPort, command);
         completeProgressStep(label);
+      }
+
+      const reservation = await ensureRepeaterPrefixReserved(
+        selectedPort,
+        updateProgress,
+        completeProgressStep,
+      );
+      identityRebooted = reservation.identityRebooted;
+      setReservedPrefix(reservation.prefix);
+      setReservedPublicKey(reservation.publicKey);
+
+      if (!identityRebooted) {
+        updateProgress("Rebooting repeater");
+        await runSerialCommand(selectedPort, {
+          command: "reboot",
+          timeoutMs: 1500,
+          retries: 2,
+          allowTimeout: true,
+          requireReply: false,
+        });
+        completeProgressStep("Rebooting repeater");
       }
 
       addLog("[CONFIG] Repeater settings applied successfully.\n");
@@ -624,21 +931,137 @@ function SetupWizard() {
     }
   };
 
-  // Real Flashing Logic for ESP32
-  const handleFlashReal = async () => {
+  const selectedSetupDevice = selectedDevice ? getSetupDevice(selectedDevice) : null;
+  const availableDevices = listSupportedSetupDevices();
+
+  const selectDevice = (deviceId: SetupDeviceId) => {
+    setSelectedDevice(deviceId);
+    const device = getSetupDevice(deviceId);
+    setNrfEraseBeforeFlash(device?.eraseRequired ?? true);
+  };
+
+  const getFlashDeviceLabel = () => (selectedSetupDevice?.name ?? selectedDevice) || 'device';
+
+  const getFlashingSubtitle = () => {
+    if (selectedSetupDevice?.mcu === 'nrf52840') {
+      return 'Uploading MeshCore DFU package over serial…';
+    }
+    return step.startsWith('client')
+      ? 'Injecting MeshCore client firmware…'
+      : 'Streaming repeater firmware to ESP32…';
+  };
+
+  const renderNrfConnectExtras = () => {
+    if (selectedSetupDevice?.mcu !== 'nrf52840') return null;
+
+    return (
+      <div className="mx-auto max-w-md space-y-4 text-left">
+        <div className="rounded-2xl border bg-white/60 p-4 dark:bg-white/5" style={{ borderColor: 'rgb(var(--line) / 0.7)' }}>
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-500 dark:text-ink-400">
+            DFU notes
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-ink-600 dark:text-ink-300">
+            {selectedSetupDevice.dfuHint}
+          </p>
+          <p className="mt-2 text-xs leading-relaxed text-ink-500 dark:text-ink-400">
+            After flashing starts, you may be asked to pick the serial port again when the board re-enumerates as TinyUSB or nRF DFU.
+          </p>
+        </div>
+        {selectedSetupDevice.eraseAsset ? (
+          <label className="flex items-start gap-3 rounded-2xl border bg-white/60 p-4 dark:bg-white/5" style={{ borderColor: 'rgb(var(--line) / 0.7)' }}>
+            <input
+              type="checkbox"
+              className="mt-1"
+              checked={nrfEraseBeforeFlash}
+              disabled={Boolean(selectedSetupDevice.eraseRequired)}
+              onChange={(event) => setNrfEraseBeforeFlash(event.target.checked)}
+            />
+            <span className="text-sm leading-relaxed text-ink-700 dark:text-ink-200">
+              Erase flash before installing MeshCore
+              {selectedSetupDevice.eraseRequired ? ' (required on this device)' : ' (recommended if upgrading from Meshtastic)'}
+            </span>
+          </label>
+        ) : null}
+      </div>
+    );
+  };
+
+  const finishFlashSuccess = (type: 'client' | 'repeater') => {
+    setIsProcessing(false);
+    setTimeout(() => {
+      setSerialStatus('disconnected');
+      portRef.current = null;
+      transportRef.current = null;
+      goTo(type === 'client' ? 'client_restart' : 'repeater_restart');
+    }, 1500);
+  };
+
+  const finishFlashError = (type: 'client' | 'repeater', msg: string) => {
+    addLog(`\n[FATAL ERROR] ${msg}\n`);
+    setErrorMsg(msg);
+    setIsProcessing(false);
+    setTimeout(() => {
+      setSerialStatus('disconnected');
+      portRef.current = null;
+      transportRef.current = null;
+      goTo(type === 'client' ? 'client_error' : 'repeater_error');
+    }, 100);
+  };
+
+  const reportNrfProgress = (progress: { percent: number; message: string }) => {
+    const now = Date.now();
+    if (progress.percent < 100 && now - lastFlashProgressUpdateRef.current < 120) return;
+    lastFlashProgressUpdateRef.current = now;
+    setFlashProgress(progress.percent);
+    if (progress.message) {
+      addLog(`[DFU] ${progress.message} (${Math.round(progress.percent)}%)\n`);
+    }
+  };
+
+  const requestDfuPort = async (prompt: string) => {
+    addLog(`[DFU] ${prompt}\n`);
+    return openSerialPort();
+  };
+
+  const enterDfuFromApplicationPort = async () => {
+    addLog('[DFU] Select the application serial port, then entering DFU mode (1200 baud touch)…\n');
+    const appPort = await requestDfuPort('Select the application serial port for your device.');
+    try {
+      await enterNrfDfu(appPort);
+    } finally {
+      await closeSerialPort(appPort);
+    }
+    await sleep(1500);
+  };
+
+  const flashNrfZipOnDfuPort = async (zipData: ArrayBuffer, label: string) => {
+    const dfuPort = await requestDfuPort(`Select the DFU / TinyUSB serial port to ${label}.`);
+    try {
+      await flashNrfPackage(dfuPort, zipData, reportNrfProgress);
+    } finally {
+      await closeSerialPort(dfuPort);
+    }
+  };
+
+  const handleFlashEsp32 = async () => {
     if (isProcessing || !portRef.current || !transportRef.current) {
       return;
     }
 
     const type = step.startsWith('client') ? 'client' : 'repeater';
+    const firmwareVersion = getResolvedFirmwareVersion(type);
+    if (!firmwareVersion) {
+      setErrorMsg('Choose a MeshCore firmware version before flashing.');
+      return;
+    }
+
     goTo(type === 'client' ? 'client_flashing' : 'repeater_flashing');
     setIsProcessing(true);
     setFlashProgress(0);
+    lastFlashProgressUpdateRef.current = 0;
 
-    // Stop our background terminal reader so esptool can take over
     await stopBackgroundReader();
 
-    // Crucial: Close the port if it's open so esptool can take over
     const activePort = portRef.current;
     if (activePort) {
       try {
@@ -648,26 +1071,32 @@ function SetupWizard() {
       }
     }
 
-    const binPath = `/firmware/${selectedDevice}/${type}/firmware.bin`;
+    const firmwareUrl = `/api/meshcore/firmware?device=${encodeURIComponent(selectedDevice)}&role=${encodeURIComponent(type)}&version=${encodeURIComponent(firmwareVersion)}`;
 
     try {
-      // 1. Fetch the binary
-      addLog(`[FLASH] Fetching firmware: ${binPath}\n`);
-      const response = await fetch(binPath);
-      if (!response.ok) throw new Error(`Firmware not found at ${binPath}. Ensure it exists in public/firmware/...`);
+      addLog(`[FLASH] Fetching MeshCore ${type} firmware v${firmwareVersion} for ${selectedDevice}...\n`);
+      const response = await fetch(firmwareUrl);
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(payload?.error || `Firmware download failed (${response.status}).`);
+      }
+
+      const meshcoreTag = response.headers.get('X-MeshCore-Tag');
+      const meshcoreFile = response.headers.get('X-MeshCore-File');
+      if (meshcoreTag) addLog(`[FLASH] Release: ${meshcoreTag}\n`);
+      if (meshcoreFile) addLog(`[FLASH] Asset: ${meshcoreFile}\n`);
+
       const blob = await response.blob();
+      await yieldToMain();
       const arrayBuffer = await blob.arrayBuffer();
+      await yieldToMain();
       const firmwareData = new Uint8Array(arrayBuffer);
       addLog(`[FLASH] Binary loaded (${firmwareData.length} bytes)\n`);
 
-      // 2. Prepare ESP Loader
       addLog("\n--- BOOTLOADER HANDSHAKE STARTS ---\n");
 
       const espLoaderTerminal = {
-        clean: () => {
-          // terminalLogsRef.current = [];
-          // setTerminalLogs([]);
-        },
+        clean: () => {},
         writeLine: (data: string) => addLog(data + "\n"),
         write: (data: string) => addLog(data)
       };
@@ -679,7 +1108,6 @@ function SetupWizard() {
       });
       esploaderRef.current = esploader;
 
-      // 3. Connect to Bootloader
       await esploader.main();
       addLog(`[FLASH] Connected to chip: ${esploader.chip.CHIP_NAME}\n`);
 
@@ -690,8 +1118,11 @@ function SetupWizard() {
         flashFreq: 'keep',
         eraseAll: false,
         calculateMD5Hash: () => "",
-        reportProgress: (fileIndex: number, written: number, total: number) => {
+        reportProgress: (_fileIndex: number, written: number, total: number) => {
           const progress = (written / total) * 100;
+          const now = Date.now();
+          if (progress < 100 && now - lastFlashProgressUpdateRef.current < 120) return;
+          lastFlashProgressUpdateRef.current = now;
           setFlashProgress(progress);
         },
         compress: true
@@ -701,37 +1132,91 @@ function SetupWizard() {
       await esploader.writeFlash(flashOptions);
 
       addLog("\n--- FLASHING SUCCESSFUL ---\n");
-
-      setIsProcessing(false);
-
-      // Delay slightly before moving to restart page so they can see "SUCCESS"
-      setTimeout(() => {
-        setSerialStatus('disconnected');
-        portRef.current = null;
-        goTo(type === 'client' ? 'client_restart' : 'repeater_restart');
-      }, 1500);
-
+      finishFlashSuccess(type);
     } catch (err: unknown) {
       console.error("Flashing error:", err);
-      const msg = (err as Error).message || String(err);
-      addLog(`\n[FATAL ERROR] ${msg}\n`);
-      setErrorMsg(msg);
-      setIsProcessing(false);
-
-      // Navigate to error state
-      setTimeout(() => {
-        setSerialStatus('disconnected');
-        portRef.current = null;
-        goTo(type === 'client' ? 'client_error' : 'repeater_error');
-      }, 100);
+      finishFlashError(type, (err as Error).message || String(err));
     } finally {
-      // Release the port from esptool so it can be re-opened for terminal reading
       if (transportRef.current) {
         try {
           await transportRef.current.disconnect();
         } catch { }
       }
     }
+  };
+
+  const handleFlashNrf = async () => {
+    if (isProcessing || !selectedDevice || !selectedSetupDevice) {
+      return;
+    }
+
+    const type = step.startsWith('client') ? 'client' : 'repeater';
+    const firmwareVersion = getResolvedFirmwareVersion(type);
+    if (!firmwareVersion) {
+      setErrorMsg('Choose a MeshCore firmware version before flashing.');
+      return;
+    }
+
+    goTo(type === 'client' ? 'client_flashing' : 'repeater_flashing');
+    setIsProcessing(true);
+    setFlashProgress(0);
+    lastFlashProgressUpdateRef.current = 0;
+
+    await stopBackgroundReader();
+    await closeSerialPort(portRef.current);
+    portRef.current = null;
+    transportRef.current = null;
+
+    const firmwareUrl = `/api/meshcore/firmware?device=${encodeURIComponent(selectedDevice)}&role=${encodeURIComponent(type)}&version=${encodeURIComponent(firmwareVersion)}`;
+    const shouldErase = nrfEraseBeforeFlash && Boolean(selectedSetupDevice.eraseAsset);
+
+    try {
+      if (shouldErase) {
+        addLog('[DFU] Downloading erase firmware…\n');
+        setFlashProgress(0);
+        const eraseData = await fetchErasePackage(selectedDevice);
+        await enterDfuFromApplicationPort();
+        addLog('[DFU] Flashing erase firmware…\n');
+        await flashNrfZipOnDfuPort(eraseData, 'erase flash');
+        addLog('[DFU] Erase complete. Re-entering DFU mode for MeshCore firmware…\n');
+        setFlashProgress(0);
+        await enterDfuFromApplicationPort();
+      } else {
+        await enterDfuFromApplicationPort();
+      }
+
+      addLog(`[FLASH] Fetching MeshCore ${type} firmware v${firmwareVersion} for ${selectedDevice}…\n`);
+      const response = await fetch(firmwareUrl);
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(payload?.error || `Firmware download failed (${response.status}).`);
+      }
+
+      const meshcoreTag = response.headers.get('X-MeshCore-Tag');
+      const meshcoreFile = response.headers.get('X-MeshCore-File');
+      if (meshcoreTag) addLog(`[FLASH] Release: ${meshcoreTag}\n`);
+      if (meshcoreFile) addLog(`[FLASH] Asset: ${meshcoreFile}\n`);
+
+      const firmwareZip = await response.arrayBuffer();
+      addLog(`[FLASH] DFU package loaded (${firmwareZip.byteLength} bytes)\n`);
+      addLog('[DFU] Flashing MeshCore firmware…\n');
+      setFlashProgress(0);
+      await flashNrfZipOnDfuPort(firmwareZip, 'flash MeshCore firmware');
+
+      addLog('\n--- FLASHING SUCCESSFUL ---\n');
+      finishFlashSuccess(type);
+    } catch (err: unknown) {
+      console.error('nRF flashing error:', err);
+      finishFlashError(type, (err as Error).message || String(err));
+    }
+  };
+
+  const handleFlashReal = async () => {
+    if (selectedSetupDevice?.mcu === 'nrf52840') {
+      await handleFlashNrf();
+      return;
+    }
+    await handleFlashEsp32();
   };
 
   // Helper to change steps
@@ -741,17 +1226,10 @@ function SetupWizard() {
     const steps: Record<string, number> = {
       intro: 0,
       client_explain: 15, client_select_device: 30, client_connect: 50, client_flashing: 75, client_error: 75, client_restart: 100,
-      repeater_explain: 10, repeater_select_device: 20, repeater_connect: 35, repeater_flashing: 50, repeater_error: 50, repeater_restart: 70, repeater_config: 85, repeater_ready: 100,
+      repeater_explain: 10, repeater_select_device: 20, repeater_connect: 35, repeater_flashing: 50, repeater_error: 50, repeater_restart: 70, repeater_config: 85, repeater_applying: 92, repeater_ready: 100,
     };
     return steps[step] || 0;
   };
-
-  const availableDevices = [
-    { id: 'heltec-v3', name: 'Heltec V3', supported: true },
-    { id: 'heltec-v4', name: 'Heltec V4', supported: true },
-    { id: 't-1000e', name: 'T-1000E', supported: false },
-    { id: 'seeed-p1', name: 'SeeedStudio P1', supported: false }
-  ];
 
   // ==========================================
   // SHARED UI COMPONENTS
@@ -810,7 +1288,7 @@ function SetupWizard() {
         body: (
           <>
             Firefox doesn’t ship the <span className="font-semibold text-ink-900 dark:text-white">Web Serial API</span> the
-            flasher needs to talk to ESP32 boards (Mozilla declined the spec). Open this same page in any
+            flasher needs to talk to your board over USB (ESP32 or nRF52840). Open this same page in any
             Chromium-based browser to continue.
           </>
         ),
@@ -932,7 +1410,7 @@ function SetupWizard() {
           <div className="flex items-center gap-2 text-ink-200">
             <TerminalIcon className="h-4 w-4" aria-hidden />
             <span className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-ink-100">
-              ESP32 flash terminal
+              Flash terminal
             </span>
           </div>
           <button
@@ -1079,7 +1557,7 @@ function SetupWizard() {
               key={d.id}
               type="button"
               disabled={!d.supported}
-              onClick={() => setSelectedDevice(d.id)}
+              onClick={() => selectDevice(d.id)}
               aria-pressed={isSelected}
               className={
                 'group relative flex flex-col items-center gap-2 rounded-2xl border p-5 text-center transition disabled:cursor-not-allowed disabled:opacity-45 ' +
@@ -1105,11 +1583,12 @@ function SetupWizard() {
           );
         })}
       </div>
+      {renderFirmwareVersionPicker('client')}
       <div className="flex justify-end">
         <button
           type="button"
           onClick={() => goTo('client_connect')}
-          disabled={!selectedDevice}
+          disabled={!selectedDevice || !getResolvedFirmwareVersion('client')}
           className="btn-primary disabled:cursor-not-allowed disabled:opacity-50"
         >
           Next: connect
@@ -1126,12 +1605,13 @@ function SetupWizard() {
           <Usb className="h-6 w-6" aria-hidden />
         </span>
         <h2 className="mt-5 font-display text-2xl font-semibold tracking-tight text-ink-900 dark:text-white">
-          Connect your {selectedDevice || 'device'}
+          Connect your {getFlashDeviceLabel()}
         </h2>
         <p className="mx-auto mt-2 max-w-xs text-sm text-ink-600 dark:text-ink-300">
           Plug in via USB and click below to unlock the serial port.
         </p>
       </div>
+      {renderNrfConnectExtras()}
       {renderCompatibilityWarning()}
       <div className="flex flex-col items-center gap-5">
         {serialStatus !== 'connected' ? (
@@ -1212,7 +1692,7 @@ function SetupWizard() {
         <h2 className="font-display text-2xl font-semibold tracking-tight text-ink-900 dark:text-white">
           Writing firmware
         </h2>
-        <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">Injecting MeshCore client to ESP32…</p>
+        <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{getFlashingSubtitle()}</p>
       </div>
       <button
         type="button"
@@ -1320,7 +1800,7 @@ function SetupWizard() {
               key={d.id}
               type="button"
               disabled={!d.supported}
-              onClick={() => setSelectedDevice(d.id)}
+              onClick={() => selectDevice(d.id)}
               aria-pressed={isSelected}
               className={
                 'group relative flex flex-col items-center gap-2 rounded-2xl border p-5 text-center transition disabled:cursor-not-allowed disabled:opacity-45 ' +
@@ -1346,11 +1826,12 @@ function SetupWizard() {
           );
         })}
       </div>
+      {renderFirmwareVersionPicker('repeater')}
       <div className="flex justify-end">
         <button
           type="button"
           onClick={() => goTo('repeater_connect')}
-          disabled={!selectedDevice}
+          disabled={!selectedDevice || !getResolvedFirmwareVersion('repeater')}
           className="btn-primary disabled:cursor-not-allowed disabled:opacity-50"
         >
           Next: connect
@@ -1369,7 +1850,13 @@ function SetupWizard() {
         <h2 className="mt-5 font-display text-2xl font-semibold tracking-tight text-ink-900 dark:text-white">
           Connect repeater
         </h2>
+        {selectedSetupDevice ? (
+          <p className="mx-auto mt-2 max-w-sm text-sm text-ink-600 dark:text-ink-300">
+            {getFlashDeviceLabel()} — plug in via USB and select the serial port.
+          </p>
+        ) : null}
       </div>
+      {renderNrfConnectExtras()}
       {renderCompatibilityWarning()}
       <div className="flex flex-col items-center gap-5">
         {serialStatus !== 'connected' ? (
@@ -1450,7 +1937,7 @@ function SetupWizard() {
         <h2 className="font-display text-2xl font-semibold tracking-tight text-ink-900 dark:text-white">
           Writing repeater firmware
         </h2>
-        <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">Streaming packets to ESP32…</p>
+        <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{getFlashingSubtitle()}</p>
       </div>
       <button
         type="button"
@@ -1737,6 +2224,53 @@ function SetupWizard() {
     );
   };
 
+  const renderSettingsProgress = () => {
+    if (!isProcessing || settingsProgress.total <= 0) return null;
+
+    return (
+      <div className="surface p-4">
+        <div className="flex items-center justify-between font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-gulf-700 dark:text-gulf-300">
+          <span className="inline-flex items-center gap-2">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+            {settingsProgress.label || 'Sending settings'}
+          </span>
+          <span>{Math.round((settingsProgress.current / settingsProgress.total) * 100)}%</span>
+        </div>
+        <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-ink-200/60 dark:bg-white/10">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-gulf-400 to-gulf-600 transition-all duration-300"
+            style={{ width: `${(settingsProgress.current / settingsProgress.total) * 100}%` }}
+          />
+        </div>
+        <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500 dark:text-ink-400">
+          Step {settingsProgress.current} of {settingsProgress.total}
+        </p>
+      </div>
+    );
+  };
+
+  const renderRepeaterApplying = () => (
+    <div className="space-y-6 py-6">
+      <div className="text-center">
+        <h2 className="font-display text-2xl font-semibold tracking-tight text-ink-900 dark:text-white">
+          Joining the mesh
+        </h2>
+        <p className="mt-2 text-sm text-ink-500 dark:text-ink-400">
+          Applying radio settings, reserving your prefix, and rebooting the repeater. This can take a minute — the page
+          may look idle while the radio is busy.
+        </p>
+      </div>
+      {renderSettingsProgress()}
+      <button
+        type="button"
+        onClick={() => setShowTerminal(true)}
+        className="mx-auto block font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-gulf-700 transition hover:underline dark:text-gulf-300"
+      >
+        Open serial logs
+      </button>
+    </div>
+  );
+
   const renderRepeaterConfig = () => {
     const inputClass =
       'w-full rounded-xl border bg-white/80 px-3 py-3 text-sm text-ink-900 placeholder:text-ink-400 outline-none transition focus:border-gulf-400 focus:ring-2 focus:ring-gulf-400/40 dark:bg-ink-900/60 dark:text-white dark:placeholder:text-ink-500';
@@ -1801,6 +2335,7 @@ function SetupWizard() {
           />
           <input
             type="email"
+            required
             value={repeaterConfig.email}
             onChange={(e) => setRepeaterConfig({ ...repeaterConfig, email: e.target.value })}
             placeholder="Contact email"
@@ -1818,28 +2353,36 @@ function SetupWizard() {
           style={inputBorder}
         />
 
-        <div className="rounded-2xl border border-gulf-500/30 bg-gulf-500/10 px-4 py-3 text-[11px] leading-relaxed text-ink-700 dark:text-ink-200">
-          Radio profile will be set to the Gulf Coast US defaults — <code className="kbd">910.525 MHz</code> ·{' '}
-          <code className="kbd">62.5 kHz</code> · <code className="kbd">SF9</code> · <code className="kbd">CR7</code>.
-        </div>
-
-        {isProcessing && settingsProgress.total > 0 && (
-          <div className="surface p-4">
-            <div className="flex items-center justify-between font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-gulf-700 dark:text-gulf-300">
-              <span>{settingsProgress.label || 'Sending settings'}</span>
-              <span>{Math.round((settingsProgress.current / settingsProgress.total) * 100)}%</span>
-            </div>
-            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-ink-200/60 dark:bg-white/10">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-gulf-400 to-gulf-600 transition-all duration-300"
-                style={{ width: `${(settingsProgress.current / settingsProgress.total) * 100}%` }}
-              />
-            </div>
-            <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500 dark:text-ink-400">
-              Step {settingsProgress.current} of {settingsProgress.total}
+        <div
+          className="rounded-xl border bg-white/60 px-3 py-2.5 dark:bg-white/5"
+          style={{ borderColor: "rgb(var(--line) / 0.7)" }}
+        >
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <p className="text-[11px] leading-relaxed text-ink-600 dark:text-ink-300">
+              <code className="kbd">910.525 MHz</code> · <code className="kbd">62.5 kHz</code> ·{' '}
+              <code className="kbd">SF{REPEATER_SPREADING_FACTOR}</code>
             </p>
+            <label className="inline-flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-500 dark:text-ink-400">
+              CR
+              <select
+                value={repeaterConfig.codingRate}
+                onChange={(e) => setRepeaterConfig({ ...repeaterConfig, codingRate: e.target.value })}
+                className="rounded-lg border bg-white/80 px-2 py-1 text-xs font-medium text-ink-900 outline-none transition focus:border-gulf-400 focus:ring-2 focus:ring-gulf-400/40 dark:bg-ink-900/60 dark:text-white"
+                style={inputBorder}
+              >
+                {[5, 6, 7, 8].map((rate) => (
+                  <option key={rate} value={String(rate)}>
+                    {rate}
+                    {rate === DEFAULT_REPEATER_CODING_RATE ? " (default)" : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
-        )}
+          <p className="mt-2 text-[11px] leading-relaxed text-ink-500 dark:text-ink-400">
+            You may need to change this depending on link distance and local RF conditions.
+          </p>
+        </div>
 
         {serialStatus !== 'connected' && (
           <p className="rounded-xl border border-sand-400/40 bg-sand-400/10 px-3 py-2 text-[11px] text-sand-700 dark:text-sand-300">
@@ -1850,7 +2393,7 @@ function SetupWizard() {
         <button
           type="button"
           onClick={handleApplyRepeaterConfig}
-          disabled={isProcessing || serialStatus !== 'connected'}
+          disabled={isProcessing || serialStatus !== 'connected' || !repeaterConfig.email.trim()}
           className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isProcessing ? 'Applying serial settings…' : 'Join the mesh'}
@@ -1878,6 +2421,24 @@ function SetupWizard() {
         Repeater <span className="font-semibold text-ink-900 dark:text-white">{repeaterConfig.name || 'node'}</span> is
         live on the Gulf Coast mesh.
       </p>
+      {reservedPrefix ? (
+        <div className="surface mx-auto max-w-sm p-4 text-left">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-gulf-700 dark:text-gulf-300">
+            Prefix reserved
+          </p>
+          <p className="mt-2 text-sm text-ink-700 dark:text-ink-200">
+            <span className="font-mono font-semibold text-ink-900 dark:text-white">{reservedPrefix}</span> is reserved on
+            MeshBuddy
+            {reservedPublicKey ? (
+              <>
+                {" "}
+                (<span className="font-mono text-xs">{reservedPublicKey.slice(0, 12)}…</span>)
+              </>
+            ) : null}
+            .
+          </p>
+        </div>
+      ) : null}
       <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
         <button
           type="button"
@@ -1885,6 +2446,8 @@ function SetupWizard() {
             setStep('intro');
             setSerialStatus('disconnected');
             portRef.current = null;
+            setReservedPrefix(null);
+            setReservedPublicKey(null);
           }}
           className="btn-primary"
         >
@@ -1930,7 +2493,7 @@ function SetupWizard() {
     client_explain: renderClientExplain, client_select_device: renderClientSelectDevice, client_connect: renderClientConnect,
     client_flashing: renderClientFlashing, client_error: renderClientError, client_restart: renderClientRestart,
     repeater_explain: renderRepeaterExplain, repeater_select_device: renderRepeaterSelectDevice, repeater_connect: renderRepeaterConnect,
-    repeater_flashing: renderRepeaterFlashing, repeater_error: renderRepeaterError, repeater_restart: renderRepeaterRestart, repeater_config: renderRepeaterConfig, repeater_ready: renderRepeaterReady,
+    repeater_flashing: renderRepeaterFlashing, repeater_error: renderRepeaterError, repeater_restart: renderRepeaterRestart, repeater_config: renderRepeaterConfig, repeater_applying: renderRepeaterApplying, repeater_ready: renderRepeaterReady,
   };
 
   const inputClass =

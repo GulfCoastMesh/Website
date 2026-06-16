@@ -303,36 +303,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* PROTOCOLS — dark inset card */}
-      <section className="container">
-        <div className="relative overflow-hidden rounded-3xl border border-white/5 bg-ink-950 text-ink-50 shadow-glow">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(900px_420px_at_15%_-10%,rgba(45,209,189,0.25),transparent_55%),radial-gradient(700px_360px_at_95%_15%,rgba(249,162,40,0.16),transparent_55%)]" />
-          <div className="relative grid gap-10 p-8 sm:p-12 lg:grid-cols-12 lg:items-center">
-            <div className="lg:col-span-5">
-              <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-gulf-300">
-                Stack snapshot
-              </p>
-              <h2 className="mt-3 font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-                Meshcore
-              </h2>
-              <p className="mt-4 max-w-md text-sm leading-relaxed text-ink-300">
-                One obsession: messages that arrive. Meshcore is the backbone of the Gulf Coast network —
-                reliability-first routing built to scale from a single rooftop to the whole coast.
-              </p>
-            </div>
-            <div className="lg:col-span-7">
-              <ProtocolCard
-                icon={Sparkles}
-                tint="from-fuchsia-500/20 to-gulf-500/10"
-                title="Meshcore"
-                blurb="Reliability-first routing with deep pathing — up to 32 hops for coast-scale links and repeater backbones."
-                tags={["Long hops", "Repeater-friendly", "Pathing"]}
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* HOW IT WORKS */}
       <section className="container py-20 sm:py-28">
         <div className="max-w-2xl">
@@ -465,35 +435,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* OPERATOR NOTICE */}
-      <section className="container py-20 sm:py-28">
-        <div className="surface relative overflow-hidden p-10 sm:p-14">
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-sand-400/15 via-transparent to-gulf-500/10" />
-          <div className="relative flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
-            <div className="max-w-xl">
-              <span className="eyebrow">
-                <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
-                Operator notice
-              </span>
-              <h2 className="mt-4 font-display text-2xl font-semibold text-ink-900 sm:text-3xl dark:text-white">
-                Meshcore frequency settings have been updated
-              </h2>
-              <p className="mt-3 text-ink-600 dark:text-ink-300">
-                Repeater operators — please review the latest guidance so the coast-wide network stays in sync.
-              </p>
-            </div>
-            <div className="flex shrink-0 flex-col gap-3 sm:flex-row">
-              <Link href="/docs/freq-settings" className="btn-primary">
-                Read the docs
-              </Link>
-              <Link href="/meshmap" className="btn-ghost">
-                View live maps
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
     </>
   );
 }
@@ -507,39 +448,5 @@ function Pill({ icon: Icon, children }: { icon: React.ComponentType<{ className?
       <Icon className="h-3.5 w-3.5 text-gulf-600 dark:text-gulf-300" />
       {children}
     </span>
-  );
-}
-
-function ProtocolCard({
-  icon: Icon,
-  tint,
-  title,
-  blurb,
-  tags,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  tint: string;
-  title: string;
-  blurb: string;
-  tags: string[];
-}) {
-  return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6">
-      <div className={`pointer-events-none absolute inset-0 -z-0 bg-gradient-to-br ${tint}`} />
-      <div className="relative flex items-center gap-3">
-        <span className="grid h-11 w-11 place-items-center rounded-2xl bg-white/10 text-white">
-          <Icon className="h-5 w-5" />
-        </span>
-        <h3 className="font-display text-xl font-semibold text-white">{title}</h3>
-      </div>
-      <p className="relative mt-3 text-sm leading-relaxed text-ink-200">{blurb}</p>
-      <div className="relative mt-4 flex flex-wrap gap-1.5">
-        {tags.map((t) => (
-          <span key={t} className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-200">
-            {t}
-          </span>
-        ))}
-      </div>
-    </div>
   );
 }

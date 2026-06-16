@@ -62,7 +62,8 @@ eslint.config.mjs       Flat ESLint config wrapping next/core-web-vitals + next/
 ## Replacing content
 
 - **Newsletter** — list IDs and Listmonk endpoint live at the top of `app/emailsignup/page.tsx` (`ALERTS_LIST_ID`, `NEWS_LIST_ID`, and the `fetch()` URL).
-- **Supporters / partners** — `components/site-footer.tsx`.
+- **Supporters / partners** — individual supporters in `components/site-footer.tsx`; partner logos in `lib/partners.ts` with host logos in `public/supporters/`.
 - **Hero copy, stats, regions, how-it-works** — `app/page.tsx`. Regions support a `forceLive: true` flag to show as live even when the upstream API count is zero (currently used for Mississippi).
 - **GitHub org link** — `components/site-header.tsx` and `components/site-footer.tsx` both point at [`github.com/GulfCoastMesh`](https://github.com/GulfCoastMesh).
 - **Mesh Monitor API** — [`API.md`](./API.md) and [`openapi.yaml`](./openapi.yaml) document the API. `/mesh-monitor` hosts reserve, duplicates, and network reports (proxied via `app/api/mesh-monitor/*` and `lib/mesh-monitor.ts`).
+- **Setup wizard** — repeater flow in `app/setup/page.tsx` reserves MeshBuddy prefixes via `/api/meshbuddy/*` (proxies to `MESHBUDDY_API_BASE_URL`, default `https://meshbuddy.gulfcoastmesh.org`). Email is required for reservation; firmware versions come from MeshCore GitHub releases.

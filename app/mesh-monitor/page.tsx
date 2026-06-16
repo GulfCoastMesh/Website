@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { Activity, Copy, Radio } from "lucide-react";
+import { Activity, Copy, Radio, Search } from "lucide-react";
 
 import { MeshMonitorDuplicatesSection } from "@/components/mesh-monitor-duplicates-section";
+import { MeshMonitorLookupSection } from "@/components/mesh-monitor-lookup-section";
 import { MeshMonitorReportsSection } from "@/components/mesh-monitor-reports-section";
 import { MeshMonitorReserveForm } from "@/components/mesh-monitor-reserve-form";
 import { MeshMonitorSectionNav } from "@/components/mesh-monitor-section-nav";
@@ -50,6 +51,19 @@ export default async function MeshMonitorPage() {
           </p>
           <div className="mt-8">
             <MeshMonitorReserveForm />
+          </div>
+        </section>
+
+        <section id="lookup" className="scroll-mt-32 mt-20 border-t pt-16 dark:border-white/10">
+          <h2 className="flex items-center gap-2 font-display text-2xl font-semibold tracking-tight text-ink-900 dark:text-white">
+            <Search className="h-6 w-6 text-gulf-600 dark:text-gulf-300" aria-hidden />
+            My prefixes
+          </h2>
+          <p className="mt-2 text-sm text-ink-600 dark:text-ink-300">
+            Look up prefixes reserved or deployed under your contact email.
+          </p>
+          <div className="mt-8">
+            <MeshMonitorLookupSection />
           </div>
         </section>
 

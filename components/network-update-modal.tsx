@@ -7,7 +7,7 @@ import { AlertTriangle, ArrowRight, X } from "lucide-react";
 // Bump the version suffix when the message changes so previously-dismissed
 // users see the new notice. Keeping a structured key (`scope:topic:version`)
 // makes that bookkeeping obvious.
-const STORAGE_KEY = "gcm:network-update:sf7-may25:dismissed";
+const STORAGE_KEY = "gcm:network-update:sf7-may25-v2:dismissed";
 const DOCS_HREF = "/docs/freq-settings";
 const DISCORD_HREF = "https://discord.gulfcoastmesh.org";
 
@@ -112,7 +112,7 @@ export function NetworkUpdateModal() {
           id="network-update-title"
           className="mt-5 font-display text-2xl font-semibold tracking-tight text-balance text-ink-900 sm:text-3xl dark:text-white"
         >
-          Gulf Coast Mesh is upgrading to{" "}
+          Gulf Coast Mesh has upgraded to{" "}
           <span className="text-gulf-700 dark:text-gulf-200">SF7</span> on{" "}
           <span className="text-sand-700 dark:text-sand-200">May 25, 2026</span>.
         </h2>
@@ -120,13 +120,9 @@ export function NetworkUpdateModal() {
         <p className="mt-4 text-[15px] leading-relaxed text-ink-700 dark:text-ink-100">
           All repeater operators must reset their MeshCore settings to the network{" "}
           <strong className="font-semibold text-ink-900 dark:text-white">defaults</strong>{" "}
-          &mdash; including the move to{" "}
+          &mdash; including{" "}
           <strong className="font-semibold text-ink-900 dark:text-white">SF7</strong>{" "}
-          &mdash; before{" "}
-          <strong className="font-semibold text-sand-700 dark:text-sand-200">
-            May 25, 2026
-          </strong>
-          .
+          &mdash; if they have not already.
         </p>
 
         <p className="mt-3 text-[15px] leading-relaxed text-ink-700 dark:text-ink-100">
@@ -134,9 +130,9 @@ export function NetworkUpdateModal() {
             className="-mt-0.5 mr-1 inline h-4 w-4 text-coral-500"
             aria-hidden
           />
-          Repeaters that haven&apos;t been updated by the due date will{" "}
+          Repeaters that have not been updated are at risk of losing{" "}
           <span className="font-semibold text-coral-500 dark:text-coral-400">
-            lose connection to the mesh
+            connection to the mesh
           </span>
           . Check our{" "}
           <Link

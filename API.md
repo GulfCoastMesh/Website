@@ -18,7 +18,7 @@ REST API for the public website features: prefix reservation, network reports, a
 
 | Access | Routes | Header |
 |--------|--------|--------|
-| Public | Discovery, status, prefix check, reserve, release (email), reports, duplicates, open | None |
+| Public | Discovery, status, prefix check, reserve, release (email), my-reservations, reports, duplicates, open | None |
 | Admin | `GET /api/reservations`, `GET /api/used`, `DELETE /api/release/<prefix>` | `X-API-Key: <api_key>` when `[api] api_key` is set in `config.ini` |
 
 When `api_key` is blank, admin routes are also open (development only; set a key in production).
@@ -226,6 +226,75 @@ curl -s -X POST https://meshbuddy.gulfcoastmesh.org/api/release \
 
 ---
 
+### POST /api/my-reservations
+
+List all prefix reservations tied to a contact email. Searches both active reservations (`reservedNodes.json`) and deployed reservations (`offReserved.json`). Returns an empty list when no matches are found (does not reveal whether the email exists elsewhere).
+
+**Body (required)**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `email` | string | Contact email used at reserve time |
+
+**Response 200**
+
+```json
+{
+  "timestamp": "2026-06-16T12:00:00",
+  "email": "you@example.com",
+  "count": 2,
+  "reservations": [
+    {
+      "prefix": "A1B2",
+      "name": "My Repeater",
+      "lat": 30.45,
+      "lon": -91.19,
+      "altitude": 25.0,
+      "email": "you@example.com",
+      "username": "api-user",
+      "display_name": "api-user",
+      "user_id": 0,
+      "added_at": "2026-05-27T12:00:00",
+      "source": "api",
+      "status": "reserved"
+    },
+    {
+      "prefix": "CAFE",
+      "name": "Deployed Node",
+      "lat": 30.12,
+      "lon": -91.05,
+      "altitude": 40.0,
+      "email": "you@example.com",
+      "username": "api-user",
+      "display_name": "api-user",
+      "user_id": 0,
+      "added_at": "2026-04-10T08:30:00",
+      "source": "api",
+      "status": "deployed"
+    }
+  ]
+}
+```
+
+**`status` values**
+
+| status | Meaning |
+|--------|---------|
+| `reserved` | Active reservation (not yet deployed on the mesh) |
+| `deployed` | Reservation moved to off-reserved after a live repeater matched |
+
+Results are sorted by `prefix` ascending.
+
+**Example**
+
+```bash
+curl -s -X POST https://meshbuddy.gulfcoastmesh.org/api/my-reservations \
+  -H 'Content-Type: application/json' \
+  -d '{"email": "you@example.com"}'
+```
+
+---
+
 ### GET /api/reports
 
 Network health report (powers the `/reports` page). Includes summary stats, repeaters without location, and clock sync (minor drift and out-of-sync only in the repeater table).
@@ -362,6 +431,7 @@ curl -s -X DELETE https://meshbuddy.gulfcoastmesh.org/api/release/A1B2 \
 | Website page | API |
 |--------------|-----|
 | [Reserve](https://meshbuddy.gulfcoastmesh.org/) | `POST /api/reserve`, `GET /api/prefix/{prefix}` |
+| [My prefixes](https://gulfcoastmesh.org/mesh-monitor#lookup) | `POST /api/my-reservations` |
 | [Reports](https://meshbuddy.gulfcoastmesh.org/reports) | `GET /api/reports` |
 | [Duplicates](https://meshbuddy.gulfcoastmesh.org/duplicates) | `GET /api/duplicates` |
 
