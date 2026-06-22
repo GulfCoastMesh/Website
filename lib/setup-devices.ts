@@ -6,6 +6,7 @@ export type SetupDeviceId =
   | "heltec-v3"
   | "heltec-v4"
   | "rak-4631"
+  | "rak-1w"
   | "heltec-t096"
   | "seeed-p1"
   | "t-1000e";
@@ -59,6 +60,20 @@ const SETUP_DEVICES: SetupDevice[] = [
       repeater: ["RAK_4631_repeater"],
     },
     dfuHint: "Double-click the reset button to enter DFU mode if auto-touch fails. Select the TinyUSB or nRF serial port.",
+  },
+  {
+    id: "rak-1w",
+    name: "RAK WisMesh 1W (RAK3401)",
+    mcu: "nrf52840",
+    supported: true,
+    firmwareFormat: "zip",
+    eraseAsset: "FLASH_ERASE_nrf52_softdevice_v6.zip",
+    firmwarePatterns: {
+      client: ["RAK_3401_companion_radio_ble"],
+      repeater: ["RAK_3401_repeater"],
+    },
+    dfuHint:
+      "Double-click the reset button on the RAK19007 base board to enter DFU mode if auto-touch fails. Select the TinyUSB or nRF serial port. Attach an antenna before powering on.",
   },
   {
     id: "heltec-t096",

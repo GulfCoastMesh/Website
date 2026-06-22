@@ -28,15 +28,27 @@ import {
 } from '@/components/setup-firmware-version';
 import type { FirmwareRole } from '@/lib/meshcore-firmware';
 import { extractPrefix, isUsablePrefix } from '@/lib/meshbuddy';
-import { generateIdentityKeypair, parsePublicKeyFromSerial } from '@/lib/meshcore-identity';
+import {
+  generateAvailableKeypair,
+  isValidMeshCorePrivateKeyHex,
+  parsePublicKeyFromSerial,
+  parsePublicKeyFromSetPrivateKeyResponse,
+  publicKeysMatch,
+  type IdentityKeypair,
+} from '@/lib/meshcore-identity';
 import { getSetupDevice, listSupportedSetupDevices, type SetupDeviceId } from '@/lib/setup-devices';
 import {
+  acquireReadySerialPort,
+  acquireSerialPort,
   closeSerialPort,
   enterNrfDfu,
   fetchErasePackage,
   flashNrfPackage,
+  isOpenFailure,
   openSerialPort,
+  SerialPortSelectionRequiredError,
 } from '@/lib/nrf52-flash';
+import type { SerialPortLike } from 'nrfutil-web';
 
 // Real flashing dependencies (dynamic import to avoid SSR issues if any, but "use client" handles it)
 import { ESPLoader, Transport } from 'esptool-js';
@@ -90,6 +102,7 @@ function getServerBrowserKindSnapshot(): BrowserKind {
 const SETUP_WIZARD_ENABLED = true;
 
 const MAX_IDENTITY_ATTEMPTS = 15;
+const SERIAL_READ_BUFFER_MAX = 65536;
 const DEFAULT_REPEATER_LAT = 30.3;
 const DEFAULT_REPEATER_LON = -91.2;
 const REPEATER_SPREADING_FACTOR = 7;
@@ -132,6 +145,7 @@ function SetupWizard() {
   const [flashProgress, setFlashProgress] = useState(0);
   const [settingsProgress, setSettingsProgress] = useState({ current: 0, total: 0, label: '' });
   const [errorMsg, setErrorMsg] = useState('');
+  const [nrfPortCheckpoint, setNrfPortCheckpoint] = useState<{ prompt: string } | null>(null);
   const [showMapModal, setShowMapModal] = useState(false);
   const [mapZoom, setMapZoom] = useState(5);
   const [mapCenter, setMapCenter] = useState({ lat: 30.3, lon: -91.2 });
@@ -192,6 +206,8 @@ function SetupWizard() {
   const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null);
   const keepReading = useRef<boolean>(true);
   const backgroundReaderRunningRef = useRef<boolean>(false);
+  const nrfPortCheckpointResolverRef = useRef<((port: SerialPortLike) => void) | null>(null);
+  const nrfPortCheckpointRejectRef = useRef<((error: Error) => void) | null>(null);
   const mapDragRef = useRef<{
     pointerId: number;
     startX: number;
@@ -495,6 +511,7 @@ function SetupWizard() {
 
     let timedOut = false;
     let buffer = '';
+    let bufferTruncated = false;
     const lines: string[] = [];
 
     const timeoutId = window.setTimeout(() => {
@@ -503,14 +520,24 @@ function SetupWizard() {
     }, timeoutMs);
 
     try {
-      while (true) {
+      while (!timedOut) {
         const { value, done } = await reader.read();
         if (done) break;
         if (!value) continue;
 
         const decoded = new TextDecoder().decode(value);
-        addLog(decoded);
-        buffer += decoded;
+        if (buffer.length < SERIAL_READ_BUFFER_MAX) {
+          if (decoded.length <= 512) {
+            addLog(decoded);
+          }
+          buffer += decoded;
+          if (buffer.length > SERIAL_READ_BUFFER_MAX) {
+            buffer = buffer.slice(0, SERIAL_READ_BUFFER_MAX);
+            bufferTruncated = true;
+          }
+        } else {
+          bufferTruncated = true;
+        }
 
         let newlineIdx = buffer.indexOf('\n');
         while (newlineIdx !== -1) {
@@ -519,6 +546,8 @@ function SetupWizard() {
           buffer = buffer.slice(newlineIdx + 1);
           newlineIdx = buffer.indexOf('\n');
         }
+
+        if (bufferTruncated) break;
       }
     } catch (err) {
       if (!timedOut) {
@@ -530,13 +559,16 @@ function SetupWizard() {
       readerRef.current = null;
       const danglingLine = buffer.replace(/\r/g, '').trim();
       if (danglingLine.length > 0) lines.push(danglingLine);
+      if (bufferTruncated) {
+        addLog("[SERIAL] Boot output truncated during read.\n");
+      }
     }
 
     return { lines, timedOut };
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const runSerialCommand = async (selectedPort: any, spec: SerialCommandSpec) => {
+  const runSerialCommand = async (selectedPort: any, spec: SerialCommandSpec): Promise<string[]> => {
     const retries = spec.retries ?? 3;
     const timeoutMs = spec.timeoutMs ?? 2200;
     const requireReply = spec.requireReply ?? !spec.allowTimeout;
@@ -579,7 +611,7 @@ function SetupWizard() {
           const expectedResponseMatched = spec.expectedResponseParts?.every((part) => relevantResponse.includes(part)) ?? false;
           if (spec.expectedResponseParts) {
             if (expectedResponseMatched) {
-              return;
+              return response.lines;
             }
 
             throw new Error(`Unexpected response for "${command}": ${relevantResponse || combinedResponse}`);
@@ -590,14 +622,14 @@ function SetupWizard() {
           }
 
           if (/\bOK\b/i.test(relevantResponse)) {
-            return;
+            return response.lines;
           }
 
           if (response.timedOut && !spec.allowTimeout) {
             throw new Error(`Timed out waiting for response to "${command}"`);
           }
 
-          return;
+          return response.lines;
         } catch (err) {
           lastError = err;
           if (attempt < retries) {
@@ -614,12 +646,14 @@ function SetupWizard() {
 
     if (spec.allowTimeout && !requireReply) {
       addLog(`[CMD] Continuing after no reply from ${spec.command}; next command will verify state.\n`);
-      return;
+      return [];
     }
 
     if (lastError) {
       throw lastError;
     }
+
+    return [];
   };
 
   const buildRepeaterSerialCommands = (): SerialCommandSpec[] => {
@@ -710,36 +744,103 @@ function SetupWizard() {
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const programIdentityOnDevice = async (selectedPort: any) => {
-    const keypair = await generateIdentityKeypair();
-    addLog(`[IDENTITY] Programming new key (target prefix ${keypair.prefix})...\n`);
-    await runSerialCommand(selectedPort, {
-      command: `set prv.key ${keypair.privateKeyHex}`,
-      timeoutMs: 4000,
-      retries: 3,
-      allowTimeout: true,
-      requireReply: false,
-    });
-    await runSerialCommand(selectedPort, {
-      command: "reboot",
-      timeoutMs: 1500,
-      retries: 2,
-      allowTimeout: true,
-      requireReply: false,
-    });
-    await sleep(2500);
-    await wakeSerialCli(selectedPort);
-    return keypair;
+  const sendSerialCommandNoReply = async (selectedPort: any, command: string) => {
+    addLog(`[CMD] > ${command}\n`);
+    try {
+      await writeSerialLine(selectedPort, command);
+    } catch (err) {
+      addLog(`[CMD] Could not send ${command} (${(err as Error).message}); link may have closed after reboot.\n`);
+    }
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const programIdentityOnDevice = async (selectedPort: any, keypair: IdentityKeypair) => {
+    if (!isValidMeshCorePrivateKeyHex(keypair.privateKeyHex)) {
+      throw new Error("Generated private key is invalid for MeshCore (expected 128 hex characters).");
+    }
+
+    addLog(`[IDENTITY] Programming new key (target prefix ${keypair.prefix})...\n`);
+    const responseLines = await runSerialCommand(selectedPort, {
+      command: `set prv.key ${keypair.privateKeyHex}`,
+      timeoutMs: 4000,
+      retries: 3,
+      allowTimeout: false,
+      requireReply: true,
+    });
+
+    const reportedPublicKeyHex = parsePublicKeyFromSetPrivateKeyResponse(responseLines) ?? keypair.publicKeyHex;
+    if (!publicKeysMatch(keypair.publicKeyHex, reportedPublicKeyHex)) {
+      addLog(
+        `[IDENTITY] Device reported pubkey ${reportedPublicKeyHex.slice(0, 8)}… (expected ${keypair.publicKeyHex.slice(0, 8)}…); using device value.\n`,
+      );
+    }
+
+    addLog("[IDENTITY] Rebooting to apply new identity (serial may disconnect)...\n");
+    await sendSerialCommandNoReply(selectedPort, "reboot");
+
+    return { keypair, publicKeyHex: reportedPublicKeyHex };
+  };
+
+  const programVerifiedIdentity = async (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    selectedPort: any,
+    conflictingPrefix: string | null,
+    onStep: (label: string) => void,
+    onStepComplete: (label: string) => void,
+  ) => {
+    for (let programAttempt = 0; programAttempt < MAX_IDENTITY_ATTEMPTS; programAttempt++) {
+      await yieldToMain();
+
+      const findLabel = conflictingPrefix
+        ? `Duplicate prefix ${conflictingPrefix} — finding available identity (${programAttempt + 1}/${MAX_IDENTITY_ATTEMPTS})`
+        : `Finding available identity (${programAttempt + 1}/${MAX_IDENTITY_ATTEMPTS})`;
+      onStep(findLabel);
+      const keypair = await generateAvailableKeypair(
+        (prefix) => fetchPrefixAvailability(prefix),
+        MAX_IDENTITY_ATTEMPTS,
+        (attempt, maxAttempts) => {
+          onStep(
+            conflictingPrefix
+              ? `Duplicate prefix ${conflictingPrefix} — finding available identity (${attempt}/${maxAttempts})`
+              : `Finding available identity (${attempt}/${maxAttempts})`,
+          );
+        },
+      );
+      onStepComplete(findLabel);
+
+      onStep("Programming new identity key");
+      const programmedIdentity = await programIdentityOnDevice(selectedPort, keypair);
+      onStepComplete("Programming new identity key");
+
+      try {
+        onStep("Reserving prefix on MeshBuddy");
+        await submitPrefixReservation(programmedIdentity.keypair.prefix);
+        onStepComplete("Reserving prefix on MeshBuddy");
+        addLog(`[IDENTITY] Prefix ${programmedIdentity.keypair.prefix} reserved on MeshBuddy.\n`);
+        return {
+          prefix: programmedIdentity.keypair.prefix,
+          publicKey: programmedIdentity.publicKeyHex,
+        };
+      } catch (err) {
+        if ((err as Error & { status?: number }).status === 409) {
+          addLog(`[IDENTITY] Prefix ${programmedIdentity.keypair.prefix} was taken during reserve — retrying...\n`);
+          continue;
+        }
+        throw err;
+      }
+    }
+
+    throw new Error(
+      `Could not program a verified identity after ${MAX_IDENTITY_ATTEMPTS} attempts. Reserve manually at meshbuddy.gulfcoastmesh.org or ask in Discord.`,
+    );
+  };
+
   const ensureRepeaterPrefixReserved = async (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     selectedPort: any,
     onStep: (label: string) => void,
     onStepComplete: (label: string) => void,
   ) => {
-    let identityRebooted = false;
-
     for (let attempt = 0; attempt < MAX_IDENTITY_ATTEMPTS; attempt++) {
       await yieldToMain();
       onStep("Reading public key");
@@ -750,11 +851,8 @@ function SetupWizard() {
       addLog(`[IDENTITY] Device prefix: ${prefix}\n`);
 
       if (!isUsablePrefix(prefix)) {
-        onStep("Programming new identity");
-        await programIdentityOnDevice(selectedPort);
-        onStepComplete("Programming new identity");
-        identityRebooted = true;
-        continue;
+        const result = await programVerifiedIdentity(selectedPort, prefix, onStep, onStepComplete);
+        return { ...result, identityRebooted: true };
       }
 
       onStep("Checking prefix on MeshBuddy");
@@ -765,11 +863,8 @@ function SetupWizard() {
         addLog(
           `[IDENTITY] Prefix ${prefix} unavailable (${availability.reason ?? "taken"}) — generating new key...\n`,
         );
-        onStep("Programming new identity");
-        await programIdentityOnDevice(selectedPort);
-        onStepComplete("Programming new identity");
-        identityRebooted = true;
-        continue;
+        const result = await programVerifiedIdentity(selectedPort, prefix, onStep, onStepComplete);
+        return { ...result, identityRebooted: true };
       }
 
       try {
@@ -777,15 +872,12 @@ function SetupWizard() {
         await submitPrefixReservation(prefix);
         onStepComplete("Reserving prefix on MeshBuddy");
         addLog(`[IDENTITY] Prefix ${prefix} reserved on MeshBuddy.\n`);
-        return { prefix, publicKey: publicKeyHex, identityRebooted };
+        return { prefix, publicKey: publicKeyHex, identityRebooted: false };
       } catch (err) {
         if ((err as Error & { status?: number }).status === 409) {
-          addLog(`[IDENTITY] Prefix ${prefix} was taken during reserve — retrying...\n`);
-          onStep("Programming new identity");
-          await programIdentityOnDevice(selectedPort);
-          onStepComplete("Programming new identity");
-          identityRebooted = true;
-          continue;
+          addLog(`[IDENTITY] Prefix ${prefix} was taken during reserve — generating new key...\n`);
+          const result = await programVerifiedIdentity(selectedPort, prefix, onStep, onStepComplete);
+          return { ...result, identityRebooted: true };
         }
         throw err;
       }
@@ -857,7 +949,7 @@ function SetupWizard() {
       await yieldToMain();
       await stopBackgroundReader();
       const commands = buildRepeaterSerialCommands();
-      const totalSettingsSteps = 2 + commands.length + 8 + 1;
+      const totalSettingsSteps = 2 + commands.length + 11 + 1;
       let completedSettingsSteps = 0;
       let identityRebooted = false;
 
@@ -987,6 +1079,9 @@ function SetupWizard() {
   };
 
   const finishFlashSuccess = (type: 'client' | 'repeater') => {
+    setNrfPortCheckpoint(null);
+    nrfPortCheckpointResolverRef.current = null;
+    nrfPortCheckpointRejectRef.current = null;
     setIsProcessing(false);
     setTimeout(() => {
       setSerialStatus('disconnected');
@@ -1000,6 +1095,9 @@ function SetupWizard() {
     addLog(`\n[FATAL ERROR] ${msg}\n`);
     setErrorMsg(msg);
     setIsProcessing(false);
+    setNrfPortCheckpoint(null);
+    nrfPortCheckpointResolverRef.current = null;
+    nrfPortCheckpointRejectRef.current = null;
     setTimeout(() => {
       setSerialStatus('disconnected');
       portRef.current = null;
@@ -1018,14 +1116,85 @@ function SetupWizard() {
     }
   };
 
-  const requestDfuPort = async (prompt: string) => {
-    addLog(`[DFU] ${prompt}\n`);
-    return openSerialPort();
+  const waitForUserGesturePort = (prompt: string): Promise<SerialPortLike> => {
+    return new Promise((resolve, reject) => {
+      nrfPortCheckpointResolverRef.current = resolve;
+      nrfPortCheckpointRejectRef.current = reject;
+      setNrfPortCheckpoint({ prompt });
+    });
   };
 
-  const enterDfuFromApplicationPort = async () => {
-    addLog('[DFU] Select the application serial port, then entering DFU mode (1200 baud touch)…\n');
-    const appPort = await requestDfuPort('Select the application serial port for your device.');
+  const handleNrfPortCheckpoint = async () => {
+    const prompt = nrfPortCheckpoint?.prompt ?? 'Select the serial port to continue.';
+    try {
+      addLog(`[DFU] ${prompt}\n`);
+      const port = await openSerialPort();
+      nrfPortCheckpointResolverRef.current?.(port);
+    } catch (err) {
+      nrfPortCheckpointRejectRef.current?.(err instanceof Error ? err : new Error(String(err)));
+    } finally {
+      setNrfPortCheckpoint(null);
+      nrfPortCheckpointResolverRef.current = null;
+      nrfPortCheckpointRejectRef.current = null;
+    }
+  };
+
+  const nrfPortStatus = (message: string) => {
+    addLog(`[DFU] ${message}\n`);
+  };
+
+  const shouldUsePortCheckpoint = (err: unknown): boolean => {
+    return err instanceof SerialPortSelectionRequiredError || isOpenFailure(err);
+  };
+
+  const acquireDfuPortWithFallback = async (
+    prompt: string,
+    preferredPort?: SerialPortLike | null,
+    appPortFallback?: SerialPortLike | null,
+  ): Promise<SerialPortLike> => {
+    try {
+      if (preferredPort) {
+        addLog('[DFU] Reconnecting to DFU port…\n');
+        return await acquireReadySerialPort({
+          prompt,
+          preferredPort,
+          appPortFallback,
+          onStatus: nrfPortStatus,
+        });
+      }
+
+      addLog(`[DFU] ${prompt}\n`);
+      return await acquireSerialPort({ prompt, onStatus: nrfPortStatus });
+    } catch (err) {
+      if (shouldUsePortCheckpoint(err)) {
+        const checkpointPrompt = err instanceof SerialPortSelectionRequiredError ? err.prompt : prompt;
+        return waitForUserGesturePort(checkpointPrompt);
+      }
+      throw err;
+    }
+  };
+
+  const enterDfuFromApplicationPort = async (existingPort?: SerialPortLike | null) => {
+    let appPort = existingPort;
+    if (!appPort) {
+      try {
+        addLog('[DFU] Select the application serial port for your device.\n');
+        appPort = await acquireSerialPort({
+          prompt: 'Select the application serial port for your device.',
+        });
+      } catch (err) {
+        if (err instanceof SerialPortSelectionRequiredError) {
+          appPort = await waitForUserGesturePort(err.prompt);
+        } else {
+          throw err;
+        }
+      }
+    } else {
+      addLog('[DFU] Using connected serial port, entering DFU mode (1200 baud touch)…\n');
+    }
+    if (!existingPort) {
+      addLog('[DFU] Entering DFU mode (1200 baud touch)…\n');
+    }
     try {
       await enterNrfDfu(appPort);
     } finally {
@@ -1034,13 +1203,36 @@ function SetupWizard() {
     await sleep(1500);
   };
 
-  const flashNrfZipOnDfuPort = async (zipData: ArrayBuffer, label: string) => {
-    const dfuPort = await requestDfuPort(`Select the DFU / TinyUSB serial port to ${label}.`);
+  const flashNrfZipOnDfuPort = async (
+    zipData: ArrayBuffer,
+    label: string,
+    preferredPort?: SerialPortLike | null,
+    appPortFallback?: SerialPortLike | null,
+  ): Promise<SerialPortLike> => {
+    const prompt = preferredPort
+      ? `Reconnect to the DFU / TinyUSB serial port to ${label}.`
+      : `Select the DFU / TinyUSB serial port to ${label}.`;
+    const dfuPort = await acquireDfuPortWithFallback(prompt, preferredPort, appPortFallback);
     try {
-      await flashNrfPackage(dfuPort, zipData, reportNrfProgress);
+      await flashNrfPackage(dfuPort, zipData, reportNrfProgress, {
+        prompt,
+        onStatus: nrfPortStatus,
+      });
+    } catch (err) {
+      if (shouldUsePortCheckpoint(err)) {
+        const checkpointPrompt = err instanceof SerialPortSelectionRequiredError ? err.prompt : prompt;
+        const recoveredPort = await waitForUserGesturePort(checkpointPrompt);
+        await flashNrfPackage(recoveredPort, zipData, reportNrfProgress, {
+          prompt,
+          onStatus: nrfPortStatus,
+        });
+        return recoveredPort;
+      }
+      throw err;
     } finally {
       await closeSerialPort(dfuPort);
     }
+    return dfuPort;
   };
 
   const handleFlashEsp32 = async () => {
@@ -1163,28 +1355,14 @@ function SetupWizard() {
     lastFlashProgressUpdateRef.current = 0;
 
     await stopBackgroundReader();
-    await closeSerialPort(portRef.current);
+    const connectedAppPort = portRef.current;
     portRef.current = null;
     transportRef.current = null;
 
     const firmwareUrl = `/api/meshcore/firmware?device=${encodeURIComponent(selectedDevice)}&role=${encodeURIComponent(type)}&version=${encodeURIComponent(firmwareVersion)}`;
     const shouldErase = nrfEraseBeforeFlash && Boolean(selectedSetupDevice.eraseAsset);
 
-    try {
-      if (shouldErase) {
-        addLog('[DFU] Downloading erase firmware…\n');
-        setFlashProgress(0);
-        const eraseData = await fetchErasePackage(selectedDevice);
-        await enterDfuFromApplicationPort();
-        addLog('[DFU] Flashing erase firmware…\n');
-        await flashNrfZipOnDfuPort(eraseData, 'erase flash');
-        addLog('[DFU] Erase complete. Re-entering DFU mode for MeshCore firmware…\n');
-        setFlashProgress(0);
-        await enterDfuFromApplicationPort();
-      } else {
-        await enterDfuFromApplicationPort();
-      }
-
+    const fetchMeshcoreFirmwareZip = async (): Promise<ArrayBuffer> => {
       addLog(`[FLASH] Fetching MeshCore ${type} firmware v${firmwareVersion} for ${selectedDevice}…\n`);
       const response = await fetch(firmwareUrl);
       if (!response.ok) {
@@ -1199,9 +1377,33 @@ function SetupWizard() {
 
       const firmwareZip = await response.arrayBuffer();
       addLog(`[FLASH] DFU package loaded (${firmwareZip.byteLength} bytes)\n`);
-      addLog('[DFU] Flashing MeshCore firmware…\n');
-      setFlashProgress(0);
-      await flashNrfZipOnDfuPort(firmwareZip, 'flash MeshCore firmware');
+      return firmwareZip;
+    };
+
+    try {
+      const meshcoreZipPromise = fetchMeshcoreFirmwareZip();
+
+      if (shouldErase) {
+        addLog('[DFU] Downloading erase firmware…\n');
+        setFlashProgress(0);
+        const [eraseData, firmwareZip] = await Promise.all([
+          fetchErasePackage(selectedDevice),
+          meshcoreZipPromise,
+        ]);
+        await enterDfuFromApplicationPort(connectedAppPort);
+        addLog('[DFU] Flashing erase firmware…\n');
+        let dfuPort = await flashNrfZipOnDfuPort(eraseData, 'erase flash');
+        addLog('[DFU] Erase complete. Flashing MeshCore firmware on DFU port…\n');
+        setFlashProgress(0);
+        await sleep(3000);
+        await flashNrfZipOnDfuPort(firmwareZip, 'flash MeshCore firmware', dfuPort, connectedAppPort);
+      } else {
+        const firmwareZip = await meshcoreZipPromise;
+        await enterDfuFromApplicationPort(connectedAppPort);
+        addLog('[DFU] Flashing MeshCore firmware…\n');
+        setFlashProgress(0);
+        await flashNrfZipOnDfuPort(firmwareZip, 'flash MeshCore firmware');
+      }
 
       addLog('\n--- FLASHING SUCCESSFUL ---\n');
       finishFlashSuccess(type);
@@ -1664,6 +1866,21 @@ function SetupWizard() {
     </div>
   );
 
+  const renderNrfPortCheckpointAction = () => {
+    if (!nrfPortCheckpoint) return null;
+
+    return (
+      <button
+        type="button"
+        onClick={() => void handleNrfPortCheckpoint()}
+        className="btn-primary"
+      >
+        <Usb className="h-4 w-4" aria-hidden />
+        {nrfPortCheckpoint.prompt}
+      </button>
+    );
+  };
+
   const renderClientFlashing = () => (
     <div className="space-y-8 py-6 text-center">
       <div className="relative mx-auto h-32 w-32">
@@ -1692,8 +1909,11 @@ function SetupWizard() {
         <h2 className="font-display text-2xl font-semibold tracking-tight text-ink-900 dark:text-white">
           Writing firmware
         </h2>
-        <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{getFlashingSubtitle()}</p>
+        <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">
+          {nrfPortCheckpoint ? 'Select the serial port below to continue flashing.' : getFlashingSubtitle()}
+        </p>
       </div>
+      {renderNrfPortCheckpointAction()}
       <button
         type="button"
         onClick={() => setShowTerminal(true)}
@@ -1937,8 +2157,11 @@ function SetupWizard() {
         <h2 className="font-display text-2xl font-semibold tracking-tight text-ink-900 dark:text-white">
           Writing repeater firmware
         </h2>
-        <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">{getFlashingSubtitle()}</p>
+        <p className="mt-1 text-sm text-ink-500 dark:text-ink-400">
+          {nrfPortCheckpoint ? 'Select the serial port below to continue flashing.' : getFlashingSubtitle()}
+        </p>
       </div>
+      {renderNrfPortCheckpointAction()}
       <button
         type="button"
         onClick={() => setShowTerminal(true)}
