@@ -68,12 +68,13 @@ const SETUP_DEVICES: SetupDevice[] = [
     supported: true,
     firmwareFormat: "zip",
     eraseAsset: "FLASH_ERASE_nrf52_softdevice_v6.zip",
+    eraseRequired: true,
     firmwarePatterns: {
       client: ["RAK_3401_companion_radio_ble"],
       repeater: ["RAK_3401_repeater"],
     },
     dfuHint:
-      "Double-click the reset button on the RAK19007 base board to enter DFU mode if auto-touch fails. Select the TinyUSB or nRF serial port. Attach an antenna before powering on.",
+      "Ships with Meshtastic — flash erase is required before MeshCore. Double-click reset enters UF2 bootloader (USB drive); use a single press to run firmware after flashing. Select the TinyUSB or nRF serial port for DFU. Attach an antenna before powering on.",
   },
   {
     id: "heltec-t096",

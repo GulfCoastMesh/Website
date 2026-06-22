@@ -46,6 +46,7 @@ import {
   flashNrfPackage,
   isOpenFailure,
   openSerialPort,
+  resetDeviceAfterDfu,
   SerialPortSelectionRequiredError,
 } from '@/lib/nrf52-flash';
 import type { SerialPortLike } from 'nrfutil-web';
@@ -1206,33 +1207,46 @@ function SetupWizard() {
   const flashNrfZipOnDfuPort = async (
     zipData: ArrayBuffer,
     label: string,
-    preferredPort?: SerialPortLike | null,
-    appPortFallback?: SerialPortLike | null,
+    options?: {
+      preferredPort?: SerialPortLike | null;
+      appPortFallback?: SerialPortLike | null;
+      resetAfter?: boolean;
+    },
   ): Promise<SerialPortLike> => {
+    const preferredPort = options?.preferredPort;
+    const appPortFallback = options?.appPortFallback;
+    const resetAfter = options?.resetAfter ?? false;
     const prompt = preferredPort
       ? `Reconnect to the DFU / TinyUSB serial port to ${label}.`
       : `Select the DFU / TinyUSB serial port to ${label}.`;
-    const dfuPort = await acquireDfuPortWithFallback(prompt, preferredPort, appPortFallback);
-    try {
-      await flashNrfPackage(dfuPort, zipData, reportNrfProgress, {
+    let activePort = await acquireDfuPortWithFallback(prompt, preferredPort, appPortFallback);
+
+    const runFlash = async (port: SerialPortLike) => {
+      await flashNrfPackage(port, zipData, reportNrfProgress, {
         prompt,
         onStatus: nrfPortStatus,
       });
+    };
+
+    try {
+      await runFlash(activePort);
     } catch (err) {
-      if (shouldUsePortCheckpoint(err)) {
-        const checkpointPrompt = err instanceof SerialPortSelectionRequiredError ? err.prompt : prompt;
-        const recoveredPort = await waitForUserGesturePort(checkpointPrompt);
-        await flashNrfPackage(recoveredPort, zipData, reportNrfProgress, {
-          prompt,
-          onStatus: nrfPortStatus,
-        });
-        return recoveredPort;
+      if (!shouldUsePortCheckpoint(err)) {
+        throw err;
       }
-      throw err;
-    } finally {
-      await closeSerialPort(dfuPort);
+      const checkpointPrompt = err instanceof SerialPortSelectionRequiredError ? err.prompt : prompt;
+      activePort = await waitForUserGesturePort(checkpointPrompt);
+      await runFlash(activePort);
     }
-    return dfuPort;
+
+    if (resetAfter) {
+      addLog('[DFU] Resetting device to start MeshCore firmware…\n');
+      await resetDeviceAfterDfu(activePort);
+    } else {
+      await closeSerialPort(activePort);
+    }
+
+    return activePort;
   };
 
   const handleFlashEsp32 = async () => {
@@ -1392,17 +1406,23 @@ function SetupWizard() {
         ]);
         await enterDfuFromApplicationPort(connectedAppPort);
         addLog('[DFU] Flashing erase firmware…\n');
-        let dfuPort = await flashNrfZipOnDfuPort(eraseData, 'erase flash');
+        const dfuPort = await flashNrfZipOnDfuPort(eraseData, 'erase flash');
         addLog('[DFU] Erase complete. Flashing MeshCore firmware on DFU port…\n');
         setFlashProgress(0);
-        await sleep(3000);
-        await flashNrfZipOnDfuPort(firmwareZip, 'flash MeshCore firmware', dfuPort, connectedAppPort);
+        const postEraseSettleMs =
+          selectedDevice === 'rak-1w' || selectedDevice === 'rak-4631' ? 5000 : 3000;
+        await sleep(postEraseSettleMs);
+        await flashNrfZipOnDfuPort(firmwareZip, 'flash MeshCore firmware', {
+          preferredPort: dfuPort,
+          appPortFallback: connectedAppPort,
+          resetAfter: true,
+        });
       } else {
         const firmwareZip = await meshcoreZipPromise;
         await enterDfuFromApplicationPort(connectedAppPort);
         addLog('[DFU] Flashing MeshCore firmware…\n');
         setFlashProgress(0);
-        await flashNrfZipOnDfuPort(firmwareZip, 'flash MeshCore firmware');
+        await flashNrfZipOnDfuPort(firmwareZip, 'flash MeshCore firmware', { resetAfter: true });
       }
 
       addLog('\n--- FLASHING SUCCESSFUL ---\n');
@@ -2172,7 +2192,10 @@ function SetupWizard() {
     </div>
   );
 
-  const renderRepeaterRestart = () => (
+  const renderRepeaterRestart = () => {
+    const isRakBoard = selectedDevice === 'rak-1w' || selectedDevice === 'rak-4631';
+
+    return (
     <div className="space-y-7 py-6 text-center">
       <div className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-gulf-500/15 text-gulf-700 dark:text-gulf-300">
         <CheckCircle className="h-10 w-10" aria-hidden />
@@ -2188,6 +2211,12 @@ function SetupWizard() {
           <li className="flex gap-2"><span className="font-mono text-ink-400">1.</span> Unplug USB cable</li>
           <li className="flex gap-2"><span className="font-mono text-ink-400">2.</span> Wait two seconds</li>
           <li className="flex gap-2"><span className="font-mono text-ink-400">3.</span> Re-insert USB cable</li>
+          {isRakBoard ? (
+            <li className="flex gap-2">
+              <span className="font-mono text-ink-400">4.</span>
+              Press RESET once to run firmware. If a USB drive appears, you are in UF2 bootloader mode — use a single press, not a double-tap.
+            </li>
+          ) : null}
         </ol>
       </div>
       <div className="flex flex-col items-center gap-4">
@@ -2208,7 +2237,8 @@ function SetupWizard() {
         )}
       </div>
     </div>
-  );
+    );
+  };
 
   const tileSize = 256;
   const clampMapZoom = (zoom: number) => Math.min(15, Math.max(3, zoom));

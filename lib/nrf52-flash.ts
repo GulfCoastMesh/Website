@@ -330,3 +330,21 @@ export async function closeSerialPort(port: SerialPortLike | null | undefined): 
   if (!port) return;
   await ensureSerialPortClosed(port);
 }
+
+export async function resetDeviceAfterDfu(port: SerialPortLike): Promise<void> {
+  await ensureSerialPortClosed(port);
+  try {
+    await port.open({ baudRate: DFU_OPEN_BAUD_RATE });
+    if (port.setSignals) {
+      await port.setSignals({ dataTerminalReady: false });
+      await sleep(50);
+      await port.setSignals({ dataTerminalReady: true });
+      await sleep(100);
+    }
+    await sleep(300);
+  } catch {
+    // Reset is best-effort; unplugging USB also works.
+  } finally {
+    await ensureSerialPortClosed(port);
+  }
+}
