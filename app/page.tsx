@@ -131,15 +131,26 @@ export default async function HomePage() {
             </p>
 
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-              <a
-                href="https://discord.gulfcoastmesh.org"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-primary w-full sm:w-auto"
-              >
-                Join the Discord
-                <ArrowRight className="h-4 w-4" aria-hidden />
-              </a>
+              <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+                <a
+                  href="https://discord.gulfcoastmesh.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-primary w-full sm:w-auto"
+                >
+                  Join the Discord
+                  <ArrowRight className="h-4 w-4" aria-hidden />
+                </a>
+                <a
+                  href="https://www.facebook.com/groups/gulfcoastmesh"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-facebook w-full sm:w-auto"
+                >
+                  Join the Facebook
+                  <ArrowRight className="h-4 w-4" aria-hidden />
+                </a>
+              </div>
               <Link href="/meshmap" className="btn-ghost w-full sm:w-auto">
                 See the live map
                 <MapIcon className="h-4 w-4 opacity-80" aria-hidden />

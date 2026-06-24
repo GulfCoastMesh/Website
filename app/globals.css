@@ -133,6 +133,24 @@
     border-color: rgb(var(--line) / 0.7);
   }
 
+  .btn-facebook {
+    @apply btn text-ink-950;
+    background: linear-gradient(120deg, #fdd98c 0%, #f9a228 45%, #f3820f 110%);
+    background-size: 200% 100%;
+    box-shadow:
+      0 10px 30px -10px rgba(249, 162, 40, 0.45),
+      0 0 0 1px rgba(255, 255, 255, 0.25) inset;
+    transition: background-position 0.6s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  }
+
+  .btn-facebook:hover {
+    background-position: 100% 0;
+    transform: translateY(-1px);
+    box-shadow:
+      0 14px 40px -8px rgba(249, 162, 40, 0.55),
+      0 0 0 1px rgba(255, 255, 255, 0.35) inset;
+  }
+
   /* ---- Text helpers ---- */
   .eyebrow {
     @apply inline-flex items-center gap-2 rounded-full border px-3 py-1 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-gulf-700 dark:text-gulf-300;

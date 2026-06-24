@@ -94,14 +94,24 @@ export function SiteHeader() {
             <Github className="h-[18px] w-[18px]" aria-hidden />
           </a>
           <ThemeToggle />
-          <a
-            href="https://discord.gulfcoastmesh.org"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden rounded-xl bg-gradient-to-r from-gulf-400 via-gulf-500 to-gulf-600 px-4 py-2 text-sm font-semibold text-ink-950 shadow-glow transition hover:brightness-110 sm:inline-flex"
-          >
-            Join Discord
-          </a>
+          <div className="hidden items-center gap-2 sm:flex">
+            <a
+              href="https://discord.gulfcoastmesh.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-xl bg-gradient-to-r from-gulf-400 via-gulf-500 to-gulf-600 px-4 py-2 text-sm font-semibold text-ink-950 shadow-glow transition hover:brightness-110"
+            >
+              Join Discord
+            </a>
+            <a
+              href="https://www.facebook.com/groups/gulfcoastmesh"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-xl bg-gradient-to-r from-sand-300 via-sand-400 to-sand-500 px-4 py-2 text-sm font-semibold text-ink-950 shadow-glow-sand transition hover:brightness-110"
+            >
+              Join the Facebook
+            </a>
+          </div>
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
@@ -157,6 +167,15 @@ export function SiteHeader() {
               onClick={() => setOpen(false)}
             >
               Join Discord
+            </a>
+            <a
+              href="https://www.facebook.com/groups/gulfcoastmesh"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-xl bg-gradient-to-r from-sand-300 to-sand-500 px-3 py-3 text-center text-base font-semibold text-ink-950"
+              onClick={() => setOpen(false)}
+            >
+              Join the Facebook
             </a>
           </nav>
         </div>
