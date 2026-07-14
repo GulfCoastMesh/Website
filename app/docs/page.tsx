@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, BookOpen, ExternalLink } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import { getDocPage } from "@/lib/docs";
 
 export const revalidate = 3600;
@@ -31,28 +31,7 @@ export default async function DocsIndexPage() {
           Frequency settings, channel layouts, hardware picks, and step-by-step setup guides. Synced
           hourly from our community docs repository.
         </p>
-        <div className="mt-6 flex flex-wrap items-center gap-3 text-xs">
-          <a
-            href={DOCS_REPO_HTML}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 font-medium text-ink-700 transition hover:bg-ink-50 dark:border-white/10 dark:text-ink-200 dark:hover:bg-white/5"
-            style={{ borderColor: "rgb(var(--line) / 0.7)" }}
-          >
-            Edit on GitHub
-            <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
-          </a>
-          <a
-            href={LEGACY_DOCS_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 font-medium text-ink-700 transition hover:bg-ink-50 dark:border-white/10 dark:text-ink-200 dark:hover:bg-white/5"
-            style={{ borderColor: "rgb(var(--line) / 0.7)" }}
-          >
-            Open the MkDocs site
-            <ExternalLink className="h-3.5 w-3.5" aria-hidden />
-          </a>
-        </div>
+        <div className="mt-6" />
       </header>
 
       {page ? (

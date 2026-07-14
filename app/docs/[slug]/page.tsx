@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { ArrowLeft, ArrowRight, ArrowUpRight, BookOpen } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen } from "lucide-react";
 import { getAdjacentPages, getAllSlugs, getDocPage, getPageMeta } from "@/lib/docs";
 
 export const revalidate = 3600;
@@ -50,18 +50,7 @@ export default async function DocsSlugPage({
         <h1 className="mt-4 font-display text-4xl font-semibold tracking-tight text-balance text-ink-900 sm:text-display-lg dark:text-white">
           {page.title}
         </h1>
-        <div className="mt-5">
-          <a
-            href={`${DOCS_REPO_RAW_HTML}/${slug}.md`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium text-ink-700 transition hover:bg-ink-50 dark:border-white/10 dark:text-ink-200 dark:hover:bg-white/5"
-            style={{ borderColor: "rgb(var(--line) / 0.7)" }}
-          >
-            Edit on GitHub
-            <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
-          </a>
-        </div>
+
       </header>
 
       <div
