@@ -43,16 +43,6 @@ export function SiteHeader() {
           className="group flex min-w-0 items-center gap-3 rounded-xl px-1.5 py-1 font-display text-[15px] font-semibold tracking-tight"
           aria-label="Gulf Coast Mesh — home"
         >
-          <span className="relative grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-gulf-300 via-gulf-500 to-sand-400 text-ink-950 shadow-glow">
-            <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <circle cx="6" cy="6" r="1.6" fill="currentColor" />
-              <circle cx="18" cy="6" r="1.6" fill="currentColor" />
-              <circle cx="12" cy="13" r="1.6" fill="currentColor" />
-              <circle cx="6" cy="20" r="1.6" fill="currentColor" />
-              <circle cx="18" cy="20" r="1.6" fill="currentColor" />
-              <path d="M6 6L12 13M18 6L12 13M12 13L6 20M12 13L18 20" />
-            </svg>
-          </span>
           <span className="hidden text-ink-900 dark:text-white min-[420px]:inline">
             Gulf Coast <span className="font-normal text-ink-500 dark:text-ink-300/80">Mesh</span>
           </span>

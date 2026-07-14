@@ -83,7 +83,7 @@ export function SiteFooter() {
               <ArrowUpRight className="h-3 w-3 opacity-60 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100" aria-hidden />
             </a>
             <p className="mt-2 text-[11px] text-ink-500 dark:text-ink-400">
-              Tower fees and antennas — every coffee helps.
+              Every coffee helps.
             </p>
           </div>
 

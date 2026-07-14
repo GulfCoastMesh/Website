@@ -39,17 +39,16 @@ const steps = [
     n: "01",
     icon: CircuitBoard,
     title: "Pick your hardware",
-    body: "New to LoRa? Start with our recommended devices and the antenna guide so your first radio just works.",
+    body: "New to LoRa? Start with our recommended devices so your first radio just works.",
     links: [
       { label: "Recommended devices", href: "/docs/devicerecs", internal: true },
-      { label: "Antenna guide", href: "/docs/antenna", internal: true },
     ],
   },
   {
     n: "02",
     icon: Smartphone,
     title: "Set up a daily-carry companion",
-    body: "Get a MeshCore companion on your belt or in your bag — paired with your phone, ready to message neighbors.",
+    body: "Get a MeshCore companion on your belt or in your bag, paired with your phone, ready to message neighbors.",
     links: [
       { label: "Setup wizard", href: "/setup", internal: true },
       { label: "Companion setup guide", href: "/docs/setting-up-meshcore-companion", internal: true },
@@ -107,7 +106,7 @@ export default async function HomePage() {
       {/* HERO */}
       <section className="container relative overflow-hidden pb-24 pt-6 sm:pt-10 lg:pb-28">
         <div className="grid items-start gap-10 lg:grid-cols-12 lg:gap-12">
-          {/* LEFT — copy */}
+          {/* LEFT copy */}
           <div className="lg:col-span-5 lg:pt-6">
             <span className="eyebrow">
               <span className="relative flex h-2 w-2">
@@ -126,7 +125,7 @@ export default async function HomePage() {
             </h1>
 
             <p className="mt-6 max-w-xl text-pretty text-lg leading-relaxed text-ink-600 dark:text-ink-300">
-              Gulf Coast Mesh is a volunteer-built communications fabric — anchored in Louisiana, growing across the
+              Gulf Coast Mesh is a volunteer-built communications fabric anchored in Louisiana, growing across the
               US Gulf Coast. Open hardware. Decentralized routing. Real neighbors on the other end.
             </p>
 
@@ -167,28 +166,21 @@ export default async function HomePage() {
             <p className="mt-5 inline-flex items-center gap-2 text-xs text-ink-600 dark:text-ink-300">
               <CalendarCheck className="h-3.5 w-3.5 text-gulf-600 dark:text-gulf-300" />
               <span>
-                <span className="font-semibold text-ink-900 dark:text-white">Weekly Monday voice net</span> on Discord —
-                everyone welcome.
+                <span className="font-semibold text-ink-900 dark:text-white">Weekly Monday voice net</span> on Discord.
+                Everyone welcome.
               </span>
             </p>
 
-            <div className="mt-10 flex flex-wrap items-center gap-3">
-              <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-ink-500 dark:text-ink-400">
-                Stack
-              </span>
-              <Pill icon={Cpu}>Meshcore</Pill>
-              <Pill icon={Boxes}>LoRa · 915 MHz</Pill>
-              <Pill icon={ShieldCheck}>End-to-end</Pill>
-            </div>
+
           </div>
 
-          {/* RIGHT — live map (now wider + taller) */}
+          {/* RIGHT live map (now wider + taller) */}
           <div className="lg:col-span-7">
             <div className="relative">
               <LiveMap
                 src="https://explorer.gulfcoastmesh.org/embed-light"
                 srcDark="https://explorer.gulfcoastmesh.org/embed-dark"
-                title="Gulf Coast Mesh — Explorer (live)"
+                title="Gulf Coast Mesh Explorer (live)"
                 label="Gulf Coast Explorer"
                 sub={
                   mesh.ok
@@ -238,20 +230,14 @@ export default async function HomePage() {
 
       {/* NETWORK / FEATURES BENTO */}
       <section id="network" className="container py-20 sm:py-28">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-          <div className="max-w-2xl">
-            <span className="eyebrow">
-              <Sparkles className="h-3.5 w-3.5" aria-hidden />
-              The network
-            </span>
-            <h2 className="mt-4 font-display text-display-lg font-semibold tracking-tight text-ink-900 dark:text-white">
-              Rooftops, towers, and front porches — all on the same mesh.
-            </h2>
-          </div>
-          <p className="max-w-md text-sm leading-relaxed text-ink-600 dark:text-ink-300">
-            Mesh radios pass messages neighbor-to-neighbor over license-free LoRa. Backbone repeaters live on real
-            towers and high rooftops, with three more tower sites coming online in the next three months.
-          </p>
+        <div className="max-w-2xl">
+          <span className="eyebrow">
+            <Sparkles className="h-3.5 w-3.5" aria-hidden />
+            The network
+          </span>
+          <h2 className="mt-4 font-display text-display-lg font-semibold tracking-tight text-ink-900 dark:text-white">
+            Rooftops, towers, and front porches, all on the same mesh.
+          </h2>
         </div>
 
         <div className="mt-12 grid gap-4 md:grid-cols-12 md:grid-rows-[auto_auto]">
@@ -294,8 +280,8 @@ export default async function HomePage() {
               Built for hurricane season
             </h3>
             <p className="mt-2 text-sm leading-relaxed text-ink-600 dark:text-ink-300">
-              When the cell network drops and the internet goes with it, the mesh keeps moving — on solar, battery, or
-              a USB pack — backed by our repeaters on tall sites.
+              When the cell network drops and the internet goes with it, the mesh keeps moving on solar, battery, or
+              a USB pack, backed by our repeaters on tall sites.
             </p>
           </div>
 
@@ -393,7 +379,7 @@ export default async function HomePage() {
                 growing the whole Gulf.
               </h2>
               <p className="mt-4 max-w-md text-sm leading-relaxed text-ink-600 dark:text-ink-300">
-                Today the live network is concentrated across Louisiana. The mission is bigger — neighbors helping
+                Today the live network is concentrated across Louisiana. The mission is bigger: neighbors helping
                 neighbors from Corpus Christi to Panama City. If you’re elsewhere on the Gulf, come build with us.
               </p>
             </div>

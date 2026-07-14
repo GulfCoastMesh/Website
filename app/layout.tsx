@@ -5,8 +5,6 @@ import Script from "next/script";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { SettingsChangeBanner } from "@/components/settings-change-banner";
-import { NetworkUpdateModal } from "@/components/network-update-modal";
 import { AnalyticsScript } from "@/components/analytics-script";
 
 // preload: false skips the <link rel="preload"> hint for each font and loads
@@ -92,12 +90,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <div className="relative z-10 flex min-h-screen flex-col">
           <SiteHeader />
           <main className="flex-1 pt-28 sm:pt-32">
-            <SettingsChangeBanner />
             {children}
           </main>
           <SiteFooter />
         </div>
-        <NetworkUpdateModal />
         <AnalyticsScript nonce={nonce} />
       </body>
     </html>
