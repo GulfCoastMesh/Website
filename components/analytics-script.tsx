@@ -13,6 +13,12 @@ import Script from "next/script";
 // nonce is threaded down from the root layout so this script passes the
 // strict CSP set in proxy.ts.
 export function AnalyticsScript({ nonce }: { nonce?: string }) {
+  // Skip Clicky in local/dev — no analytics value, and the script often
+  // fails to load (tracker blockers), which clutters the console.
+  if (process.env.NODE_ENV !== "production") {
+    return null;
+  }
+
   return (
     <Script
       async

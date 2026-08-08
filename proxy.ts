@@ -4,8 +4,9 @@ import { NextResponse, type NextRequest } from "next/server";
 //
 // Production:
 //   Every HTML response gets a fresh random nonce that Next.js threads onto
-//   every inline <script> it emits. script-src has no 'unsafe-inline' and no
-//   'unsafe-eval'. This is the strict CSP the site ships to real users.
+//   every inline <script> it emits. script-src is nonce + 'strict-dynamic'
+//   (no 'unsafe-eval'). Host allowlists are omitted — browsers ignore them
+//   under 'strict-dynamic' and Firefox warns if they are present.
 //
 // Development:
 //   React's dev build uses eval() for callstack reconstruction, Turbopack's
@@ -25,9 +26,16 @@ import { NextResponse, type NextRequest } from "next/server";
 const isDev = process.env.NODE_ENV !== "production";
 
 function buildCsp(nonce: string): string {
+  // Production: nonce + strict-dynamic only. Host allowlists ('self',
+  // https://static.getclicky.com, …) are ignored by browsers once
+  // 'strict-dynamic' is present, and Firefox logs noisy warnings for them.
+  // Clicky still loads because AnalyticsScript carries the nonce; any
+  // scripts it pulls in are then trusted via the strict-dynamic chain.
+  // 'unsafe-inline' + https: are ignored by modern browsers when a nonce
+  // is present — they exist only as a fallback for older ones.
   const scriptSrc = isDev
     ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.getclicky.com https://in.getclicky.com"
-    : `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://static.getclicky.com https://in.getclicky.com`;
+    : `script-src 'nonce-${nonce}' 'strict-dynamic' 'unsafe-inline' https:`;
 
   const connectSrc = [
     "connect-src 'self'",
