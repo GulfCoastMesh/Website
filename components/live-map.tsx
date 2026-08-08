@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { ArrowUpRight, Compass, Loader2 } from "lucide-react";
 import { useTheme } from "@/lib/theme";
+import { useHasMounted } from "@/lib/use-has-mounted";
 
 type LiveMapProps = {
   /** The URL to embed (must allow framing). Used as the light-mode src
@@ -37,6 +38,9 @@ export function LiveMap({
   className = "",
 }: LiveMapProps) {
   const { theme } = useTheme();
+  const mounted = useHasMounted();
+  // Wait until after hydration so we don't SSR embed-light then swap to
+  // embed-dark (that tears down Leaflet mid-tile-load → _map is null).
   const resolvedSrc = theme === "dark" && srcDark ? srcDark : src;
 
   const [loaded, setLoaded] = useState(false);
@@ -118,7 +122,7 @@ export function LiveMap({
           </div>
         </div>
 
-        {!errored ? (
+        {!errored && mounted ? (
           <iframe
             ref={iframeRef}
             src={resolvedSrc}
@@ -134,7 +138,7 @@ export function LiveMap({
               (loaded ? "opacity-100" : "opacity-0")
             }
           />
-        ) : (
+        ) : errored ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center">
             <p className="font-display text-sm font-semibold text-ink-100">Couldn’t load the live map</p>
             <a
@@ -147,7 +151,7 @@ export function LiveMap({
               <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
             </a>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );
