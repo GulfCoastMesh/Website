@@ -68,11 +68,11 @@ export function LiveMap({
             <Compass className="h-4 w-4" aria-hidden />
           </span>
           <div className="min-w-0">
-            <p className="truncate font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-700 dark:text-ink-100">
+            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-700 sm:tracking-[0.18em] dark:text-ink-100">
               {label}
             </p>
             {sub ? (
-              <p className="truncate text-[11px] text-ink-500 dark:text-ink-400">{sub}</p>
+              <p className="text-[11px] leading-snug text-ink-500 dark:text-ink-400">{sub}</p>
             ) : null}
           </div>
         </div>

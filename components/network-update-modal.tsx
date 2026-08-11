@@ -103,8 +103,8 @@ export function NetworkUpdateModal() {
           <X className="h-5 w-5" aria-hidden />
         </button>
 
-        <span className="inline-flex items-center gap-2 rounded-full border border-sand-400/60 bg-sand-400/15 px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-sand-700 dark:border-sand-300/40 dark:bg-sand-300/10 dark:text-sand-200">
-          <AlertTriangle className="h-3.5 w-3.5" aria-hidden />
+        <span className="inline-flex max-w-full flex-wrap items-center gap-x-2 gap-y-1 rounded-full border border-sand-400/60 bg-sand-400/15 px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-sand-700 sm:tracking-[0.18em] dark:border-sand-300/40 dark:bg-sand-300/10 dark:text-sand-200">
+          <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden />
           Network update — action required
         </span>
 

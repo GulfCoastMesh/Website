@@ -179,7 +179,7 @@ function MountedCalendar({ publishedByDateKey }: Props) {
         </div>
       </header>
 
-      <div className="grid grid-cols-7 gap-1 px-1 pb-2 text-center font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-ink-500 dark:text-ink-400">
+      <div className="grid grid-cols-7 gap-1 px-1 pb-2 text-center font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-ink-500 sm:tracking-[0.18em] dark:text-ink-400">
         {DOW_LABELS.map((d) => (
           <div key={d}>{d}</div>
         ))}

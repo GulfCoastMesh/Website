@@ -26,16 +26,14 @@ import { NextResponse, type NextRequest } from "next/server";
 const isDev = process.env.NODE_ENV !== "production";
 
 function buildCsp(nonce: string): string {
-  // Production: nonce + strict-dynamic only. Host allowlists ('self',
-  // https://static.getclicky.com, …) are ignored by browsers once
-  // 'strict-dynamic' is present, and Firefox logs noisy warnings for them.
-  // Clicky still loads because AnalyticsScript carries the nonce; any
-  // scripts it pulls in are then trusted via the strict-dynamic chain.
-  // 'unsafe-inline' + https: are ignored by modern browsers when a nonce
-  // is present — they exist only as a fallback for older ones.
+  // Production: nonce + strict-dynamic only. Anything else in script-src
+  // ('self', host allowlists, 'unsafe-inline', https:) is ignored by
+  // browsers under strict-dynamic/nonce and Firefox warns about each one.
+  // Clicky still loads because AnalyticsScript carries the nonce; scripts
+  // it pulls in are trusted via the strict-dynamic chain.
   const scriptSrc = isDev
     ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.getclicky.com https://in.getclicky.com"
-    : `script-src 'nonce-${nonce}' 'strict-dynamic' 'unsafe-inline' https:`;
+    : `script-src 'nonce-${nonce}' 'strict-dynamic'`;
 
   const connectSrc = [
     "connect-src 'self'",

@@ -104,7 +104,7 @@ export default async function HomePage() {
   return (
     <>
       {/* HERO */}
-      <section className="container relative overflow-hidden pb-24 pt-6 sm:pt-10 lg:pb-28">
+      <section className="container relative pb-24 pt-6 sm:pt-10 lg:pb-28">
         <div className="grid items-start gap-10 lg:grid-cols-12 lg:gap-12">
           {/* LEFT copy */}
           <div className="lg:col-span-5 lg:pt-6">
@@ -208,14 +208,14 @@ export default async function HomePage() {
                   {s.value}
                 </p>
                 <p className="mt-1 text-sm font-medium text-ink-700 dark:text-ink-100">{s.label}</p>
-                <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500 dark:text-ink-400">
+                <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.12em] text-ink-500 sm:tracking-[0.18em] dark:text-ink-400">
                   {s.caption}
                 </p>
               </div>
             ))}
           </div>
           {mesh.ok ? (
-            <p className="border-t border-ink-200/60 px-5 py-2 text-center font-mono text-[10px] uppercase tracking-[0.22em] text-ink-500 dark:border-white/10 dark:text-ink-400">
+            <p className="border-t border-ink-200/60 px-5 py-2 text-center font-mono text-[10px] uppercase tracking-[0.14em] text-ink-500 sm:tracking-[0.22em] dark:border-white/10 dark:text-ink-400">
               live snapshot · auto-refreshes every 5 min ·{" "}
               <Link
                 href="/meshmap"
@@ -423,7 +423,7 @@ export default async function HomePage() {
                           </span>
                         )}
                       </div>
-                      <p className="truncate text-xs text-ink-500 dark:text-ink-400">{r.cities}</p>
+                      <p className="text-xs text-ink-500 dark:text-ink-400">{r.cities}</p>
                     </div>
                   </li>
                 );
