@@ -11,11 +11,18 @@ import Script from "next/script";
 // works normally for everyone else.
 //
 // nonce is threaded down from the root layout so this script passes the
-// strict CSP set in proxy.ts.
-export function AnalyticsScript({ nonce }: { nonce?: string }) {
+// strict CSP set in proxy.ts. enabled is decided server-side (apex host
+// only) so beta/preview don't request a tracker that often fails loudly.
+export function AnalyticsScript({
+  nonce,
+  enabled = true,
+}: {
+  nonce?: string;
+  enabled?: boolean;
+}) {
   // Skip Clicky in local/dev — no analytics value, and the script often
   // fails to load (tracker blockers), which clutters the console.
-  if (process.env.NODE_ENV !== "production") {
+  if (!enabled || process.env.NODE_ENV !== "production") {
     return null;
   }
 

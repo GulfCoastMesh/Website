@@ -124,6 +124,7 @@ export function LiveMap({
 
         {!errored && mounted ? (
           <iframe
+            key={resolvedSrc}
             ref={iframeRef}
             src={resolvedSrc}
             title={title}

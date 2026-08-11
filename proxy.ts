@@ -42,6 +42,7 @@ function buildCsp(nonce: string): string {
     "https://explorer.gulfcoastmesh.org",
     "https://meeting.gulfcoastmesh.org",
     "https://raw.githubusercontent.com",
+    "https://vercel.live",
     // Turbopack / webpack HMR websocket in dev.
     ...(isDev ? ["ws://localhost:*", "ws://127.0.0.1:*", "wss://localhost:*"] : []),
   ].join(" ");
@@ -65,7 +66,13 @@ function buildCsp(nonce: string): string {
       "https://in.getclicky.com",
     ].join(" "),
     connectSrc,
-    "frame-src 'self' https://analyzer.gulfcoastmesh.org https://meshview.gulfcoastmesh.org https://explorer.gulfcoastmesh.org",
+    [
+      "frame-src 'self'",
+      "https://analyzer.gulfcoastmesh.org",
+      "https://meshview.gulfcoastmesh.org",
+      "https://explorer.gulfcoastmesh.org",
+      "https://vercel.live",
+    ].join(" "),
     "worker-src 'self' blob:",
     "manifest-src 'self'",
     "media-src 'self'",
