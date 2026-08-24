@@ -140,6 +140,9 @@ export function SiteFooter() {
             <Link href="/docs/transparency" className="hover:text-ink-900 dark:hover:text-white">
               Transparency
             </Link>
+            <Link href="/privacy" className="hover:text-ink-900 dark:hover:text-white">
+              Privacy Policy
+            </Link>
           </div>
         </div>
       </div>
