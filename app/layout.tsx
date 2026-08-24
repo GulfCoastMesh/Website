@@ -66,7 +66,12 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   // <Script> tag below and into Next's own internal inline scripts. Without
   // this, the static HTML would ship with no nonce attributes and the strict
   // CSP would block React hydration entirely.
-  const nonce = (await headers()).get("x-nonce") ?? undefined;
+  const requestHeaders = await headers();
+  const nonce = requestHeaders.get("x-nonce") ?? undefined;
+  // Apex only — skip Clicky on beta/preview so tracker blockers don't
+  // spam the console with a failed <script> load.
+  const host = (requestHeaders.get("host") ?? "").split(":")[0].toLowerCase();
+  const enableAnalytics = host === "gulfcoastmesh.org" || host === "www.gulfcoastmesh.org";
 
   return (
     <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
@@ -94,7 +99,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           </main>
           <SiteFooter />
         </div>
-        <AnalyticsScript nonce={nonce} />
+        <AnalyticsScript nonce={nonce} enabled={enableAnalytics} />
       </body>
     </html>
   );
