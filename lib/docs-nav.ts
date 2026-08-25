@@ -40,6 +40,7 @@ export const DOCS_NAV: readonly DocSection[] = [
     title: "Setup Guides",
     pages: [
       { slug: "setting-up-meshcore-companion", title: "Setting up a MeshCore companion" },
+      { slug: "setting-up-meshcore-observer", title: "Setting up a MeshCore observer" },
       { slug: "meshcore-repeater-setup", title: "Setting up a MeshCore repeater" },
     ],
   },
