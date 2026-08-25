@@ -4,14 +4,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { BookOpen, ChevronDown, Home } from "lucide-react";
-import { DOCS_HOME, DOCS_NAV } from "@/lib/docs-nav";
+import type { DocPageMeta, DocSection } from "@/lib/docs-nav";
 
 function isActive(pathname: string, slug: string): boolean {
   if (slug === "index") return pathname === "/docs" || pathname === "/docs/";
   return pathname === `/docs/${slug}`;
 }
 
-export function DocsSideNav() {
+export function DocsSideNav({
+  home,
+  sections,
+}: {
+  home: DocPageMeta;
+  sections: DocSection[];
+}) {
   const pathname = usePathname() ?? "/docs";
   const [open, setOpen] = useState(false);
   const closeMobile = () => setOpen(false);
@@ -39,7 +45,7 @@ export function DocsSideNav() {
         {open ? (
           <div className="mt-3 rounded-2xl border bg-white/80 p-4 shadow-soft backdrop-blur-xl dark:border-white/10 dark:bg-ink-900/60"
                style={{ borderColor: "rgb(var(--line) / 0.6)" }}>
-            <NavList pathname={pathname} onNavigate={closeMobile} />
+            <NavList pathname={pathname} home={home} sections={sections} onNavigate={closeMobile} />
           </div>
         ) : null}
       </div>
@@ -53,7 +59,7 @@ export function DocsSideNav() {
               <BookOpen className="h-3.5 w-3.5" aria-hidden />
               Documentation
             </p>
-            <NavList pathname={pathname} />
+            <NavList pathname={pathname} home={home} sections={sections} />
           </div>
         </div>
       </aside>
@@ -63,9 +69,13 @@ export function DocsSideNav() {
 
 function NavList({
   pathname,
+  home,
+  sections,
   onNavigate,
 }: {
   pathname: string;
+  home: DocPageMeta;
+  sections: DocSection[];
   onNavigate?: () => void;
 }) {
   return (
@@ -74,7 +84,7 @@ function NavList({
         <li>
           <NavLink
             href="/docs"
-            label={DOCS_HOME.title}
+            label={home.title}
             icon={<Home className="h-3.5 w-3.5" aria-hidden />}
             active={isActive(pathname, "index")}
             onClick={onNavigate}
@@ -82,7 +92,7 @@ function NavList({
         </li>
       </ul>
 
-      {DOCS_NAV.map((section) => (
+      {sections.map((section) => (
         <div key={section.title} className="mt-5">
           <p className="px-2 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-ink-500 dark:text-ink-400">
             {section.title}

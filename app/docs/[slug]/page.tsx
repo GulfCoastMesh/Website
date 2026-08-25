@@ -5,20 +5,22 @@ import { ArrowLeft, ArrowRight, BookOpen } from "lucide-react";
 import { getAdjacentPages, getAllSlugs, getDocPage, getPageMeta } from "@/lib/docs";
 
 export const revalidate = 3600;
-export const dynamicParams = false;
+// Not locked to build-time slugs: a slug added to mkdocs.yml after the last
+// deploy still renders on first visit (and gets cached per `revalidate`
+// above), so new docs pages don't need a redeploy to go live.
 
 const DOCS_REPO_RAW_HTML =
   "https://github.com/GulfCoastMesh/louisianameshcommunity.github.io/blob/main/docs";
 
-export function generateStaticParams() {
-  return getAllSlugs().map((slug) => ({ slug }));
+export async function generateStaticParams() {
+  return (await getAllSlugs()).map((slug) => ({ slug }));
 }
 
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> },
 ): Promise<Metadata> {
   const { slug } = await params;
-  const meta = getPageMeta(slug);
+  const meta = await getPageMeta(slug);
   if (!meta) return { title: "Not found" };
   return {
     title: meta.title,
@@ -32,13 +34,13 @@ export default async function DocsSlugPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const meta = getPageMeta(slug);
+  const meta = await getPageMeta(slug);
   if (!meta) notFound();
 
   const page = await getDocPage(slug);
   if (!page) notFound();
 
-  const { prev, next } = getAdjacentPages(slug);
+  const { prev, next } = await getAdjacentPages(slug);
 
   return (
     <article>
