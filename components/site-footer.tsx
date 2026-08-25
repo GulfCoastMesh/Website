@@ -13,16 +13,7 @@ export function SiteFooter() {
         <div className="grid gap-12 lg:grid-cols-[1.3fr_1fr_1fr]">
           <div>
             <Link href="/" className="inline-flex items-center gap-3">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-gulf-300 via-gulf-500 to-sand-400 text-ink-950 shadow-glow">
-                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <circle cx="6" cy="6" r="1.6" fill="currentColor" />
-                  <circle cx="18" cy="6" r="1.6" fill="currentColor" />
-                  <circle cx="12" cy="13" r="1.6" fill="currentColor" />
-                  <circle cx="6" cy="20" r="1.6" fill="currentColor" />
-                  <circle cx="18" cy="20" r="1.6" fill="currentColor" />
-                  <path d="M6 6L12 13M18 6L12 13M12 13L6 20M12 13L18 20" />
-                </svg>
-              </span>
+              <img src="/logo.svg" alt="" className="h-10 w-10 rounded-xl shadow-glow" />
               <span className="font-display text-lg font-semibold tracking-tight text-ink-900 dark:text-white">
                 Gulf Coast Mesh
               </span>

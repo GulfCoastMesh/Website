@@ -43,6 +43,7 @@ export function SiteHeader() {
           className="group flex min-w-0 items-center gap-3 rounded-xl px-1.5 py-1 font-display text-[15px] font-semibold tracking-tight"
           aria-label="Gulf Coast Mesh — home"
         >
+          <img src="/logo.svg" alt="" className="h-9 w-9 rounded-lg" />
           <span className="hidden text-ink-900 dark:text-white min-[420px]:inline">
             Gulf Coast <span className="font-normal text-ink-500 dark:text-ink-300/80">Mesh</span>
           </span>
