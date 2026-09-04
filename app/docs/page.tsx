@@ -29,7 +29,7 @@ export default async function DocsIndexPage() {
         </h1>
         <p className="mt-4 max-w-2xl text-pretty text-lg text-ink-600 dark:text-ink-300">
           Frequency settings, channel layouts, hardware picks, and step-by-step setup guides. Synced
-          hourly from our community docs repository.
+          from our community docs repository within seconds of a change.
         </p>
         <div className="mt-6" />
       </header>

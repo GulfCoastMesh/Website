@@ -36,8 +36,7 @@ const docsSanitizeSchema: Schema = {
 };
 
 export {
-  DOCS_HOME,
-  DOCS_NAV,
+  getDocsNav,
   getAllSlugs,
   getAdjacentPages,
   getPageMeta,
@@ -133,12 +132,12 @@ export type DocPage = {
 };
 
 export async function getDocPage(slug: string): Promise<DocPage | null> {
-  const meta = getPageMeta(slug);
+  const meta = await getPageMeta(slug);
   if (!meta) return null;
 
   const url = `${DOCS_REPO_RAW}/${slug}.md`;
   const res = await fetch(url, {
-    next: { revalidate: 3600, tags: [`docs:${slug}`] },
+    next: { revalidate: 3600, tags: ["docs", `docs:${slug}`] },
   });
 
   if (!res.ok) {
