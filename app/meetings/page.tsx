@@ -140,7 +140,7 @@ function PastMeetingCard({ meeting }: { meeting: PublicMeetingWithRecap }) {
   return (
     <li className="tile group flex h-full flex-col">
       <div className="flex items-center justify-between gap-3">
-        <span className="grid h-11 w-11 place-items-center rounded-2xl bg-gulf-500/15 text-gulf-700 dark:text-gulf-300">
+        <span className="grid h-11 w-11 place-items-center rounded-lg bg-gulf-500/15 text-gulf-700 dark:text-gulf-300">
           <CalendarDays className="h-5 w-5" aria-hidden />
         </span>
         {meeting.youtubeUrl ? (
@@ -165,8 +165,8 @@ function PastMeetingCard({ meeting }: { meeting: PublicMeetingWithRecap }) {
             href={meeting.youtubeUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="group/link inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold text-gulf-700 transition hover:border-gulf-400/60 hover:bg-gulf-500/5 dark:border-white/10 dark:text-gulf-300"
-            style={{ borderColor: "rgb(var(--line) / 0.7)" }}
+            className="group/link inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold text-gulf-700 transition hover:border-gulf-400/60 hover:bg-gulf-500/5 dark:text-gulf-300"
+            style={{ borderColor: "rgb(var(--line))" }}
           >
             <Youtube className="h-3.5 w-3.5" aria-hidden />
             Watch on YouTube
@@ -179,7 +179,7 @@ function PastMeetingCard({ meeting }: { meeting: PublicMeetingWithRecap }) {
       </div>
 
       {meeting.recapHtml ? (
-        <details className="group/recap mt-4 border-t border-ink-200/60 pt-4 dark:border-white/10">
+        <details className="group/recap mt-4 border-t border-[rgb(var(--line))] pt-4 ">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-lg text-left font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-600 transition hover:text-ink-900 dark:text-ink-300 dark:hover:text-white">
             <span>Meeting summary</span>
             <ChevronDown
@@ -195,7 +195,7 @@ function PastMeetingCard({ meeting }: { meeting: PublicMeetingWithRecap }) {
       ) : null}
 
       {meeting.agendas.length > 0 ? (
-        <div className="mt-4 border-t border-ink-200/60 pt-4 dark:border-white/10">
+        <div className="mt-4 border-t border-[rgb(var(--line))] pt-4 ">
           <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-500 dark:text-ink-400">
             Agenda
           </p>
@@ -206,8 +206,8 @@ function PastMeetingCard({ meeting }: { meeting: PublicMeetingWithRecap }) {
                   href={absoluteAgendaUrl(a.downloadUrl)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-full border bg-white/70 px-2.5 py-1 text-xs font-medium text-ink-700 transition hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-ink-100 dark:hover:bg-white/10"
-                  style={{ borderColor: "rgb(var(--line) / 0.6)" }}
+                  className="inline-flex items-center gap-1.5 rounded-full border bg-[rgb(var(--bg-elevated))] px-2.5 py-1 text-xs font-medium text-ink-700 transition hover:bg-[rgb(var(--bg-sunken))] dark:text-ink-100"
+                  style={{ borderColor: "rgb(var(--line))" }}
                   title={a.originalName}
                 >
                   <FileText className="h-3 w-3" aria-hidden />

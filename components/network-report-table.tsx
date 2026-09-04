@@ -16,7 +16,7 @@ type Props = {
 export function NetworkReportTable({ rows, showClock = false, emptyMessage }: Props) {
   if (rows.length === 0) {
     return (
-      <p className="rounded-xl border border-dashed px-4 py-8 text-center text-sm text-ink-600 dark:border-white/10 dark:text-ink-300">
+      <p className="rounded-xl border border-dashed px-4 py-8 text-center text-sm text-ink-600 dark:text-ink-300">
         {emptyMessage}
       </p>
     );
@@ -26,7 +26,7 @@ export function NetworkReportTable({ rows, showClock = false, emptyMessage }: Pr
     <div className="table-wrap -mx-1 overflow-x-auto">
       <table className="w-full min-w-[640px] border-collapse text-left text-sm">
         <thead>
-          <tr className="border-b font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-500 dark:border-white/10 dark:text-ink-400">
+          <tr className="border-b font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-500 dark:text-ink-400">
             <th className="px-3 py-3">Name</th>
             <th className="px-3 py-3">Prefix</th>
             <th className="px-3 py-3">Last seen</th>

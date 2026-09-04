@@ -128,8 +128,8 @@ export function MeshMonitorReportsSection({ ok, report }: Props) {
             ].map((b) => (
               <div
                 key={b.label}
-                className="rounded-xl border px-4 py-3 text-center dark:border-white/10"
-                style={{ borderColor: "rgb(var(--line) / 0.7)" }}
+                className="rounded-xl border px-4 py-3 text-center"
+                style={{ borderColor: "rgb(var(--line))" }}
               >
                 <span className="font-display text-xl font-semibold text-ink-900 dark:text-white">
                   {fmtCount(b.value)}

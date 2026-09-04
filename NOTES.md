@@ -41,18 +41,47 @@ normal terminal.
 
 Defined in `tailwind.config.ts` + `app/globals.css`.
 
-- **Palettes**: `ink` (neutrals), `gulf` (primary blue), `sand` (accent warm),
-  `coral` (alert/accent).
-- **Theme variables**: `--bg`, `--bg-elevated`, `--fg`, `--muted`, `--line`,
-  `--accent`. Light + dark modes are real, not just a class swap — every
-  surface reads from these vars.
-- **Background layers**: `bg-canvas` (radial wash) + `bg-grid` (subtle grid)
-  + `bg-noise` (svg grain) stacked behind everything.
-- **Components**: `surface`, `shell` (glass panel), `btn-primary` /
-  `btn-ghost`, `pill`, `hairline`. Custom animations: `fade-up`, `pulse-ring`,
-  `drift`, `shimmer`.
-- **Typography**: `font-display` for headings (Space Grotesk), `font-sans`
-  body, `font-mono` for kickers/labels.
+The site is a non-profit public-information site first. Structure, type and
+data carry the page; ornament is deliberate and scoped. The 2026 redesign
+removed the glass/gradient/glow layer the site had accumulated, then added a
+single technical texture back in two places on purpose.
+
+- **Palettes are sampled from `public/logo.svg`.** `gulf` runs from the logo's
+  bright cyan-teal (`#49c7cc`) and mint (`#6ed7c8`) down to its deep teal
+  (`#0d6070`) and hull navies. `ink` is a navy-tinted neutral built on the same
+  logo navies, so the greys read as brand rather than as grey. `sand` is
+  **status only** (advisories, "planned"); `coral` is errors.
+- **Three accent tokens, because one value cannot do all three jobs at brand
+  brightness:**
+  - `--accent` — small text (links, 11px labels). The brightest point on the
+    logo's hue that still clears AA 4.5:1 on white.
+  - `--accent-bright` — display type only, which needs just 3:1, so headline
+    highlights go brighter than body copy is allowed to.
+  - `--accent-solid` — button fills. Always pairs with `ink-950` text (6.3:1);
+    white on a fill this bright would fail. Hover goes brighter, not darker.
+- **Other theme variables**: `--bg`, `--bg-elevated`, `--bg-sunken`, `--fg`,
+  `--fg-muted`, `--line`, `--line-strong`, `--grid-line`, `--wash`. Light and
+  dark are real themes — one token flips both.
+- **Background**: the page is flat. Texture is a single band declared once in
+  `app/layout.tsx` under the header, so every page gets it identically:
+  `.grid-tech` (a 44px brand-tinted engineering grid) and `.wash-brand` (one
+  soft radial, one corner). Both are radially masked, so the band's fixed
+  height only bounds the fade. The homepage's closing CTA re-uses `.grid-tech`
+  so the page opens and shuts on the same motif. Section rhythm otherwise
+  comes from `--bg-sunken` bands and hairline borders.
+- **Surfaces**: `surface` / `surface-strong` / `tile` are one flat card — 1px
+  border, solid background, no glass or backdrop blur. `tile` hover moves the
+  border colour only. `tile-accent` marks the primary card in a group with a
+  single inset accent rule.
+- **Buttons**: `btn-primary` (brand fill, dark ink) and `btn-ghost` (bordered).
+  `btn-facebook` is an alias of `btn-ghost` — one primary action per view.
+- **Labels**: `eyebrow` is a quiet mono label, not a bordered pill.
+  `gradient-text` is kept as a name but is a solid `--accent-bright`.
+- **Type**: `font-display` (Space Grotesk) headings, `font-sans` body,
+  `font-mono` for data and labels only. Display sizes top out around 3.5rem;
+  add `.tabular` to any figure sitting in a column of figures.
+- **Motion**: `fade-up`, plus `animate-ping` on genuine live indicators. The
+  `pulse-ring` / `drift` / `shimmer` animations were removed.
 
 ## Pages
 

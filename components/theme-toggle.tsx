@@ -13,10 +13,10 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
       aria-label="Toggle color theme"
       aria-pressed={theme === "dark"}
       className={
-        "inline-flex h-10 w-10 items-center justify-center rounded-xl border bg-white/70 text-ink-800 transition hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-ink-50 dark:hover:bg-white/10 " +
+ "inline-flex h-10 w-10 items-center justify-center rounded-xl border bg-[rgb(var(--bg-elevated))] text-ink-800 transition hover:bg-[rgb(var(--bg-sunken))] dark:text-ink-50 " +
         className
       }
-      style={{ borderColor: "rgb(var(--line) / 0.7)" }}
+      style={{ borderColor: "rgb(var(--line))" }}
     >
       {/* Both icons render identically on server + client; CSS toggles them
           based on the `.dark` class already set pre-paint by the theme script.

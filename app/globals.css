@@ -4,22 +4,38 @@
 
 @layer base {
   :root {
-    --bg: 246 249 253;
+    --bg: 245 250 251;
     --bg-elevated: 255 255 255;
-    --fg: 6 18 31;
-    --fg-muted: 71 100 133;
-    --line: 200 214 230;
-    --ring: 17 182 164;
+    --bg-sunken: 232 242 245;
+    --fg: 12 36 54;
+    --fg-muted: 59 90 110;
+    --line: 206 226 233;
+    --line-strong: 170 200 211;
+    /* Brightest teal on the logo's hue that still clears AA 4.5:1 on white,
+       so links and 11px labels stay legible at full brand brightness. */
+    --accent: 33 130 142;
+    /* Display type only — the 3:1 large-text threshold buys more brightness. */
+    --accent-bright: 19 154 167;
+    /* Bright brand fill; always pairs with ink-950 text, never white. */
+    --accent-solid: 34 170 180;
+    --grid-line: rgba(13, 96, 112, 0.14);
+    --wash: rgba(34, 170, 180, 0.18);
     color-scheme: light;
   }
 
   html.dark {
-    --bg: 3 8 15;
-    --bg-elevated: 14 31 51;
-    --fg: 232 240 248;
-    --fg-muted: 158 181 206;
-    --line: 25 47 73;
-    --ring: 45 209 189;
+    --bg: 6 26 40;
+    --bg-elevated: 12 36 54;
+    --bg-sunken: 4 19 29;
+    --fg: 228 238 244;
+    --fg-muted: 157 187 205;
+    --line: 29 52 70;
+    --line-strong: 45 71 87;
+    --accent: 110 215 200;
+    --accent-bright: 110 215 200;
+    --accent-solid: 34 170 180;
+    --grid-line: rgba(110, 215, 200, 0.10);
+    --wash: rgba(73, 199, 204, 0.13);
     color-scheme: dark;
   }
 
@@ -36,189 +52,157 @@
   }
 
   ::selection {
-    background: rgba(17, 182, 164, 0.25);
+    background: rgb(var(--accent) / 0.2);
     color: inherit;
   }
 
   :focus-visible {
-    @apply outline-none ring-2 ring-gulf-400 ring-offset-2 ring-offset-[rgb(var(--bg))];
+    @apply outline-none ring-2 ring-offset-2;
+    --tw-ring-color: rgb(var(--accent));
+    --tw-ring-offset-color: rgb(var(--bg));
+  }
+
+  /* Numeric data (stats, tables, counters) lines up column-to-column. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
   }
 }
 
 @layer components {
-  /* ---- Backdrop layers ---- */
+  /* ---- Page background --------------------------------------------------
+     The page itself stays flat. Texture is applied deliberately, to the hero
+     and the closing band, instead of the old fixed grid + noise + triple
+     radial wash sitting behind every page. */
   .bg-canvas {
-    background:
-      radial-gradient(1200px 600px at 12% -10%, rgba(45, 209, 189, 0.18), transparent 55%),
-      radial-gradient(900px 500px at 90% 0%, rgba(249, 162, 40, 0.14), transparent 55%),
-      radial-gradient(700px 500px at 100% 100%, rgba(17, 182, 164, 0.12), transparent 55%),
-      rgb(var(--bg));
+    background: rgb(var(--bg));
   }
 
-  .dark .bg-canvas {
-    background:
-      radial-gradient(1100px 580px at 15% -5%, rgba(45, 209, 189, 0.18), transparent 55%),
-      radial-gradient(900px 520px at 95% 8%, rgba(249, 162, 40, 0.08), transparent 55%),
-      radial-gradient(720px 540px at 90% 100%, rgba(17, 182, 164, 0.16), transparent 55%),
-      linear-gradient(180deg, #03080f 0%, #061320 40%, #03080f 100%);
-  }
-
-  .bg-grid {
+  /* Fine engineering grid, brand-tinted, faded out at the edges so it reads
+     as texture rather than wallpaper. */
+  .grid-tech {
     background-image:
-      linear-gradient(to right, rgba(100, 124, 156, 0.08) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(100, 124, 156, 0.08) 1px, transparent 1px);
-    background-size: 56px 56px;
-    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 30%, transparent 75%);
-    mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 30%, transparent 75%);
+      linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+    background-size: 44px 44px;
+    -webkit-mask-image: radial-gradient(ellipse 85% 90% at 50% 0%, #000 10%, transparent 75%);
+    mask-image: radial-gradient(ellipse 85% 90% at 50% 0%, #000 10%, transparent 75%);
   }
 
-  .bg-noise {
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.5'/></svg>");
-    opacity: 0.04;
+  /* A single soft brand wash. One gradient, one corner. */
+  .wash-brand {
+    background: radial-gradient(760px 420px at 88% -15%, var(--wash), transparent 62%);
   }
 
-  .dark .bg-noise {
-    opacity: 0.07;
-  }
-
-  /* ---- Surfaces ---- */
+  /* ---- Surfaces ---------------------------------------------------------
+     One card treatment, one border, no glass or backdrop blur. `surface` is
+     the default; `surface-strong` is the same card on the sunken page tone,
+     used when a card sits inside another region. */
   .surface {
-    @apply rounded-2xl border bg-white/80 backdrop-blur-xl dark:bg-ink-900/60;
-    border-color: rgb(var(--line) / 0.6);
-    box-shadow:
-      0 1px 0 0 rgba(255, 255, 255, 0.5) inset,
-      0 30px 80px -40px rgba(6, 18, 31, 0.25);
-  }
-
-  .dark .surface {
-    box-shadow:
-      0 1px 0 0 rgba(255, 255, 255, 0.04) inset,
-      0 36px 90px -36px rgba(0, 0, 0, 0.7);
+    @apply rounded-xl border;
+    border-color: rgb(var(--line));
+    background: rgb(var(--bg-elevated));
   }
 
   .surface-strong {
-    @apply surface;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.7));
+    @apply rounded-xl border;
+    border-color: rgb(var(--line-strong));
+    background: rgb(var(--bg-elevated));
   }
 
-  .dark .surface-strong {
-    background: linear-gradient(180deg, rgba(14, 31, 51, 0.85), rgba(6, 18, 31, 0.7));
+  /* ---- Tiles ------------------------------------------------------------
+     Cards in a grid. Hover moves the border, not the card — no lift, no glow,
+     no gradient ring. */
+  .tile {
+    @apply relative rounded-xl border p-6 transition-colors;
+    border-color: rgb(var(--line));
+    background: rgb(var(--bg-elevated));
   }
 
-  /* ---- Buttons ---- */
+  .tile:hover {
+    border-color: rgb(var(--accent) / 0.5);
+  }
+
+  /* Marks the primary tile in a group with a single accent rule up the side. */
+  .tile-accent {
+    box-shadow: inset 2px 0 0 0 rgb(var(--accent));
+  }
+
+  /* ---- Buttons ----------------------------------------------------------
+     Solid fills. No gradients, no glow shadows, no translate on hover. */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gulf-400 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
+    --tw-ring-color: rgb(var(--accent));
+    --tw-ring-offset-color: rgb(var(--bg));
   }
 
+  /* One button in both themes: the logo's bright teal carrying dark navy
+     text (6.3:1). White text on a fill this bright would fail contrast, so
+     the ink is dark and the hover goes brighter rather than darker. */
   .btn-primary {
-    @apply btn text-ink-950;
-    background: linear-gradient(120deg, #2dd1bd 0%, #11b6a4 45%, #f9a228 110%);
-    background-size: 200% 100%;
-    box-shadow:
-      0 10px 30px -10px rgba(17, 182, 164, 0.55),
-      0 0 0 1px rgba(255, 255, 255, 0.25) inset;
-    transition: background-position 0.6s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    @apply btn;
+    background: rgb(var(--accent-solid));
+    color: theme("colors.ink.950");
   }
 
   .btn-primary:hover {
-    background-position: 100% 0;
-    transform: translateY(-1px);
-    box-shadow:
-      0 14px 40px -8px rgba(17, 182, 164, 0.7),
-      0 0 0 1px rgba(255, 255, 255, 0.35) inset;
+    background: theme("colors.gulf.400");
   }
 
   .btn-ghost {
-    @apply btn border bg-white/70 text-ink-800 hover:bg-white dark:bg-white/5 dark:text-ink-50 dark:hover:bg-white/10;
-    border-color: rgb(var(--line) / 0.7);
+    @apply btn border;
+    border-color: rgb(var(--line-strong));
+    background: rgb(var(--bg-elevated));
+    color: rgb(var(--fg));
   }
 
+  .btn-ghost:hover {
+    border-color: rgb(var(--accent) / 0.6);
+    background: rgb(var(--bg-sunken));
+  }
+
+  /* Kept as a named variant so social CTAs stay distinguishable, but it is now
+     a plain secondary button rather than a second glowing gradient. */
   .btn-facebook {
-    @apply btn text-ink-950;
-    background: linear-gradient(120deg, #fdd98c 0%, #f9a228 45%, #f3820f 110%);
-    background-size: 200% 100%;
-    box-shadow:
-      0 10px 30px -10px rgba(249, 162, 40, 0.45),
-      0 0 0 1px rgba(255, 255, 255, 0.25) inset;
-    transition: background-position 0.6s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    @apply btn-ghost;
   }
 
-  .btn-facebook:hover {
-    background-position: 100% 0;
-    transform: translateY(-1px);
-    box-shadow:
-      0 14px 40px -8px rgba(249, 162, 40, 0.55),
-      0 0 0 1px rgba(255, 255, 255, 0.35) inset;
-  }
-
-  /* ---- Text helpers ---- */
+  /* ---- Section labels ---------------------------------------------------
+     Was a bordered, tinted, glowing pill. Now a quiet mono label — the same
+     signal, a fraction of the ink. */
   .eyebrow {
-    @apply inline-flex max-w-full flex-wrap items-center gap-x-2 gap-y-1 rounded-full border px-3 py-1 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-gulf-700 sm:tracking-[0.18em] dark:text-gulf-300;
-    border-color: rgb(var(--line) / 0.6);
-    background: rgba(17, 182, 164, 0.06);
+    @apply inline-flex max-w-full flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[11px] font-semibold uppercase tracking-[0.14em];
+    color: rgb(var(--accent));
   }
 
+  /* Headline highlights. Solid brand accent, no animated gradient fill.
+     Display-sized only — see --accent-bright above. */
   .gradient-text {
-    background: linear-gradient(110deg, #11b6a4 10%, #2dd1bd 35%, #f9a228 90%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    background-size: 200% 100%;
-    animation: shimmer 8s linear infinite;
+    color: rgb(var(--accent-bright));
   }
 
   .hairline {
     @apply h-px w-full;
-    background: linear-gradient(90deg, transparent, rgb(var(--line)), transparent);
+    background: rgb(var(--line));
   }
 
-  /* ---- Tile / Card patterns ---- */
-  .tile {
-    @apply relative overflow-hidden rounded-3xl border p-6 transition;
-    border-color: rgb(var(--line) / 0.6);
-    background: rgba(255, 255, 255, 0.7);
-  }
-
-  .dark .tile {
-    background: rgba(14, 31, 51, 0.6);
-  }
-
-  .tile:hover {
-    transform: translateY(-2px);
-    border-color: rgba(45, 209, 189, 0.45);
-    box-shadow: 0 30px 80px -40px rgba(17, 182, 164, 0.4);
-  }
-
-  .tile-accent::before {
-    content: "";
-    position: absolute;
-    inset: -1px;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(140deg, rgba(45, 209, 189, 0.6), transparent 40%, rgba(249, 162, 40, 0.5));
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
+  /* A short accent rule used to open a section. */
+  .rule-accent {
+    @apply h-0.5 w-10 rounded-full;
+    background: rgb(var(--accent));
   }
 
   .kbd {
-    @apply rounded-md border px-1.5 py-0.5 font-mono text-[11px] text-ink-700 dark:text-ink-100;
+    @apply rounded border px-1.5 py-0.5 font-mono text-[11px];
     border-color: rgb(var(--line));
-    background: rgba(255, 255, 255, 0.6);
-  }
-
-  .dark .kbd {
-    background: rgba(255, 255, 255, 0.06);
+    background: rgb(var(--bg-sunken));
+    color: rgb(var(--fg));
   }
 
   /* ---- Docs prose ---- */
   /* Wraps rendered Markdown on /docs. Built on @tailwindcss/typography so the
      default `prose` styles cover lists, tables, code, etc., but every visible
      color/font is re-bound to the site's design tokens so it matches the
-     surrounding marketing pages in both light and dark mode. */
+     surrounding pages in both light and dark mode. */
   .prose-mesh {
     @apply prose max-w-none;
     color: rgb(var(--fg));
@@ -227,36 +211,21 @@
     --tw-prose-lead: rgb(var(--fg-muted));
     --tw-prose-bold: rgb(var(--fg));
     --tw-prose-counters: rgb(var(--fg-muted));
-    --tw-prose-bullets: rgb(var(--fg-muted));
+    --tw-prose-bullets: rgb(var(--line-strong));
     --tw-prose-hr: rgb(var(--line));
     --tw-prose-quotes: rgb(var(--fg));
-    --tw-prose-quote-borders: theme("colors.gulf.400");
+    --tw-prose-quote-borders: rgb(var(--accent));
     --tw-prose-captions: rgb(var(--fg-muted));
     --tw-prose-code: rgb(var(--fg));
-    --tw-prose-pre-code: theme("colors.ink.50");
+    --tw-prose-pre-code: theme("colors.ink.100");
     --tw-prose-pre-bg: theme("colors.ink.900");
     --tw-prose-th-borders: rgb(var(--line));
     --tw-prose-td-borders: rgb(var(--line));
-    --tw-prose-links: theme("colors.gulf.700");
+    --tw-prose-links: rgb(var(--accent));
   }
 
   .dark .prose-mesh {
-    --tw-prose-body: rgb(var(--fg));
-    --tw-prose-headings: rgb(var(--fg));
-    --tw-prose-lead: rgb(var(--fg-muted));
-    --tw-prose-bold: rgb(var(--fg));
-    --tw-prose-counters: rgb(var(--fg-muted));
-    --tw-prose-bullets: rgb(var(--fg-muted));
-    --tw-prose-hr: rgb(var(--line));
-    --tw-prose-quotes: rgb(var(--fg));
-    --tw-prose-quote-borders: theme("colors.gulf.400");
-    --tw-prose-captions: rgb(var(--fg-muted));
-    --tw-prose-code: rgb(var(--fg));
-    --tw-prose-pre-code: theme("colors.ink.50");
     --tw-prose-pre-bg: theme("colors.ink.950");
-    --tw-prose-th-borders: rgb(var(--line));
-    --tw-prose-td-borders: rgb(var(--line));
-    --tw-prose-links: theme("colors.gulf.300");
   }
 
   .prose-mesh h1,
@@ -268,15 +237,11 @@
 
   .prose-mesh h2 {
     @apply mt-12 border-b pb-2;
-    border-color: rgb(var(--line) / 0.6);
+    border-color: rgb(var(--line));
   }
 
   .prose-mesh a {
-    @apply font-medium underline-offset-2 transition;
-  }
-
-  .prose-mesh a:hover {
-    @apply underline;
+    @apply font-medium underline underline-offset-2;
   }
 
   /* The autolink wrapper rehype-autolink-headings adds around headings: keep
@@ -288,22 +253,18 @@
   }
 
   .prose-mesh img {
-    @apply mx-auto rounded-2xl border shadow-soft;
-    border-color: rgb(var(--line) / 0.6);
-    background: rgba(255, 255, 255, 0.6);
+    @apply mx-auto rounded-lg border;
+    border-color: rgb(var(--line));
+    background: rgb(var(--bg-elevated));
   }
 
-  .dark .prose-mesh img {
-    background: rgba(14, 31, 51, 0.4);
-  }
-
-  /* MkDocs-style blockquote → sand/amber callout, matching the
-     SettingsChangeBanner / Chromium notice look. */
+  /* MkDocs-style blockquote → advisory callout, matching SettingsChangeBanner. */
   .prose-mesh blockquote {
-    @apply not-italic rounded-2xl border px-5 py-4;
-    border-color: theme("colors.sand.400" / 40%);
+    @apply not-italic rounded-lg border px-5 py-4;
+    border-color: theme("colors.sand.400" / 45%);
     background: theme("colors.sand.400" / 8%);
-    border-left-width: 1px;
+    border-left-width: 3px;
+    border-left-color: theme("colors.sand.500");
   }
 
   .prose-mesh blockquote > :first-child {
@@ -315,7 +276,7 @@
   }
 
   .prose-mesh blockquote p {
-    @apply text-ink-700 dark:text-ink-200;
+    color: rgb(var(--fg));
   }
 
   .prose-mesh blockquote strong {
@@ -323,9 +284,9 @@
   }
 
   .prose-mesh :not(pre) > code {
-    @apply rounded-md border px-1.5 py-0.5 font-mono text-[0.85em];
-    border-color: rgb(var(--line) / 0.6);
-    background: rgba(17, 182, 164, 0.08);
+    @apply rounded border px-1.5 py-0.5 font-mono text-[0.85em];
+    border-color: rgb(var(--line));
+    background: rgb(var(--bg-sunken));
   }
 
   .prose-mesh :not(pre) > code::before,
@@ -334,26 +295,22 @@
   }
 
   .prose-mesh pre {
-    @apply rounded-2xl border;
-    border-color: rgb(var(--line) / 0.6);
+    @apply rounded-lg border;
+    border-color: rgb(var(--line));
   }
 
   .prose-mesh table {
-    @apply rounded-xl border;
-    border-color: rgb(var(--line) / 0.6);
+    @apply rounded-lg border;
+    border-color: rgb(var(--line));
     overflow: hidden;
   }
 
   .prose-mesh thead th {
-    background: rgba(17, 182, 164, 0.06);
-  }
-
-  .dark .prose-mesh thead th {
-    background: rgba(45, 209, 189, 0.08);
+    background: rgb(var(--bg-sunken));
   }
 
   .prose-mesh hr {
-    border-color: rgb(var(--line) / 0.6);
+    border-color: rgb(var(--line));
   }
 }
 

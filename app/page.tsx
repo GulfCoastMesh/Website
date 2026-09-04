@@ -1,20 +1,12 @@
 import Link from "next/link";
 import {
   ArrowRight,
-  ArrowUpRight,
-  Boxes,
-  BookOpen,
-  CalendarCheck,
   CircuitBoard,
-  Compass,
-  Cpu,
-  Map as MapIcon,
+  Radio,
   Router,
-  ShieldCheck,
   Smartphone,
-  Sparkles,
   Wind,
-  Zap,
+  Wrench,
 } from "lucide-react";
 import { LiveMap } from "@/components/live-map";
 import { getMeshStats, fmt, type StateCode } from "@/lib/mesh-stats";
@@ -34,37 +26,55 @@ const regions: Region[] = [
   { code: "FL", name: "Northwest Florida", cities: "Pensacola · Destin · Panama City" },
 ];
 
+const work = [
+  {
+    icon: Wind,
+    title: "Communications that survive the storm",
+    body:
+      "When the cell network drops and the internet goes with it, the mesh keeps moving on solar, battery, or a USB pack, backed by volunteer repeaters on tall sites across the coast.",
+  },
+  {
+    icon: Radio,
+    title: "A public, live view of the network",
+    body:
+      "Anyone can watch Meshcore and Meshtastic activity in real time — who heard whom, which repeaters are carrying traffic, and where the next install would matter most.",
+  },
+  {
+    icon: Wrench,
+    title: "Open hardware, open docs, open help",
+    body:
+      "Every guide, tool, and firmware recommendation we publish is free and open source. Bring a question to the weekly net and someone will walk you through it.",
+  },
+];
+
+// One next step per stage. The old build offered up to three competing links
+// per card, which made the fastest path through the page hard to find.
 const steps = [
   {
     n: "01",
     icon: CircuitBoard,
     title: "Pick your hardware",
     body: "New to LoRa? Start with our recommended devices so your first radio just works.",
-    links: [
-      { label: "Recommended devices", href: "/docs/devicerecs", internal: true },
-    ],
+    href: "/docs/devicerecs",
+    cta: "Recommended devices",
   },
   {
     n: "02",
     icon: Smartphone,
-    title: "Set up a daily-carry companion",
-    body: "Get a MeshCore companion on your belt or in your bag, paired with your phone, ready to message neighbors.",
-    links: [
-      { label: "Setup wizard", href: "/setup", internal: true },
-      { label: "Companion setup guide", href: "/docs/setting-up-meshcore-companion", internal: true },
-      { label: "Frequency settings", href: "/docs/freq-settings", internal: true },
-    ],
+    title: "Set up a daily carry",
+    body:
+      "Get a MeshCore companion in your bag, paired with your phone, ready to message neighbors on the network.",
+    href: "/setup",
+    cta: "Open the setup wizard",
   },
   {
     n: "03",
     icon: Router,
     title: "Stand up a repeater",
-    body: "Have a place with sky? Run a repeater and extend the network. We’ll help you plan, build, and tune it.",
-    links: [
-      { label: "Setup wizard", href: "/setup", internal: true },
-      { label: "Repeater setup", href: "/docs/meshcore-repeater-setup", internal: true },
-      { label: "Estimate coverage", href: "/docs/estimate-coverage-with-meshmapper", internal: true },
-    ],
+    body:
+      "Have a place with sky? Run a repeater and extend the network. We will help you plan, build, and tune it.",
+    href: "/docs/meshcore-repeater-setup",
+    cta: "Repeater setup guide",
   },
 ];
 
@@ -73,377 +83,272 @@ export default async function HomePage() {
 
   const stats = mesh.ok
     ? [
-        {
-          value: fmt(mesh.totalMapped),
-          label: "mapped nodes",
-          caption: `${fmt(mesh.totalSeen)} ever seen`,
-        },
-        {
-          value: fmt(mesh.repeaters),
-          label: "repeaters",
-          caption: `${fmt(mesh.rooms)} room servers on the backbone`,
-        },
-        {
-          value: fmt(mesh.activeLast24h),
-          label: "active in 24h",
-          caption: `${fmt(mesh.onlineNow)} online right now`,
-        },
-        {
-          value: fmt(mesh.historyEdges),
-          label: "links observed",
-          caption: "across the rolling window",
-        },
+        { value: fmt(mesh.totalMapped), label: "Mapped nodes", caption: `${fmt(mesh.totalSeen)} ever seen` },
+        { value: fmt(mesh.repeaters), label: "Repeaters", caption: `${fmt(mesh.rooms)} room servers` },
+        { value: fmt(mesh.activeLast24h), label: "Active in 24h", caption: `${fmt(mesh.onlineNow)} online now` },
+        { value: fmt(mesh.historyEdges), label: "Links observed", caption: "Rolling window" },
       ]
     : [
         { value: "5", label: "Gulf states", caption: "TX · LA · MS · AL · FL" },
-        { value: "1,600 mi", label: "of coastline", caption: "Brownsville → Apalachicola" },
-        { value: "32", label: "max mesh hops", caption: "via Meshcore pathing" },
-        { value: "100%", label: "open source", caption: "Hardware + firmware + docs" },
+        { value: "1,600 mi", label: "Of coastline", caption: "Brownsville → Apalachicola" },
+        { value: "32", label: "Max mesh hops", caption: "Via Meshcore pathing" },
+        { value: "100%", label: "Open source", caption: "Hardware, firmware, docs" },
       ];
 
   return (
     <>
-      {/* HERO */}
-      <section className="container relative pb-24 pt-6 sm:pt-10 lg:pb-28">
-        <div className="grid items-start gap-10 lg:grid-cols-12 lg:gap-12">
-          {/* LEFT copy */}
-          <div className="lg:col-span-5 lg:pt-6">
-            <span className="eyebrow">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gulf-400 opacity-50" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-gulf-500" />
+      {/* HERO ------------------------------------------------------------
+          Copy on the left, the live map on the right, as on the original
+          site. The stats it produces sit in a band directly underneath. */}
+      <section className="container pb-16">
+        <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-12">
+          <div className="lg:col-span-5">
+            <p className="eyebrow">
+              <span className="relative flex h-1.5 w-1.5" aria-hidden>
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gulf-500 opacity-50" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-gulf-600 dark:bg-gulf-400" />
               </span>
               {mesh.ok ? `${fmt(mesh.totalMapped)} nodes live` : "Live on the bayou"}
-              <span className="mx-1.5 text-ink-400">·</span>
-              expanding the Gulf
-            </span>
+              <span aria-hidden>·</span>
+              Expanding the Gulf
+            </p>
 
-            <h1 className="mt-6 font-display text-display-xl font-semibold tracking-tight text-balance text-ink-900 dark:text-white">
+            <h1 className="mt-5 font-display text-display-xl font-semibold text-balance text-ink-900 dark:text-white">
               Comms that hold
               <br />
               when the <span className="gradient-text">coast does not</span>.
             </h1>
 
             <p className="mt-6 max-w-xl text-pretty text-lg leading-relaxed text-ink-600 dark:text-ink-300">
-              Gulf Coast Mesh is a volunteer-built communications fabric anchored in Louisiana, growing across the
-              US Gulf Coast. Open hardware. Decentralized routing. Real neighbors on the other end.
+              Gulf Coast Mesh is a volunteer-built, non-profit communications fabric anchored in Louisiana, growing
+              across the US Gulf Coast. Open hardware. Decentralized routing. Real neighbors on the other end.
             </p>
 
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-              <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
-                <a
-                  href="https://discord.gulfcoastmesh.org"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-primary w-full sm:w-auto"
-                >
-                  Join the Discord
-                  <ArrowRight className="h-4 w-4" aria-hidden />
-                </a>
-                <a
-                  href="https://www.facebook.com/groups/gulfcoastmesh"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-facebook w-full sm:w-auto"
-                >
-                  Join the Facebook
-                  <ArrowRight className="h-4 w-4" aria-hidden />
-                </a>
-              </div>
-              <Link href="/meshmap" className="btn-ghost w-full sm:w-auto">
-                See the live map
-                <MapIcon className="h-4 w-4 opacity-80" aria-hidden />
-              </Link>
-              <Link
-                href="/docs"
-                className="group ml-1 inline-flex items-center gap-1.5 text-sm font-medium text-ink-700 hover:text-ink-950 dark:text-ink-200 dark:hover:text-white"
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <a
+                href="https://discord.gulfcoastmesh.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-primary"
               >
-                Read the docs
-                <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden />
-              </Link>
-            </div>
-
-            <p className="mt-5 inline-flex items-center gap-2 text-xs text-ink-600 dark:text-ink-300">
-              <CalendarCheck className="h-3.5 w-3.5 text-gulf-600 dark:text-gulf-300" />
-              <span>
-                <span className="font-semibold text-ink-900 dark:text-white">Weekly Monday voice net</span> on Discord.
-                Everyone welcome.
-              </span>
-            </p>
-
-
-          </div>
-
-          {/* RIGHT live map (now wider + taller) */}
-          <div className="lg:col-span-7">
-            <div className="relative">
-              <LiveMap
-                src="https://explorer.gulfcoastmesh.org/embed-light"
-                srcDark="https://explorer.gulfcoastmesh.org/embed-dark"
-                title="Gulf Coast Mesh Explorer (live)"
-                label="Gulf Coast Explorer"
-                sub={
-                  mesh.ok
-                    ? `MeshCore · ${fmt(mesh.totalMapped)} nodes · ${fmt(mesh.activeLast24h)} active 24h`
-                    : "MeshCore · live packets & nodes"
-                }
-                aspect="aspect-[5/4] sm:aspect-[4/3] lg:aspect-[5/4] xl:aspect-[6/5]"
-                className="lg:min-h-[560px]"
-              />
-              <div className="pointer-events-none absolute -bottom-6 -right-6 h-32 w-32 rounded-full bg-gulf-400/20 blur-3xl" />
-              <div className="pointer-events-none absolute -top-8 -left-6 h-24 w-24 rounded-full bg-sand-400/20 blur-3xl" />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* STATS STRIP */}
-      <section className="container">
-        <div className="surface-strong relative overflow-hidden">
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-gulf-400/15 via-transparent to-transparent" aria-hidden />
-          <div className="relative grid grid-cols-2 divide-x divide-ink-200/60 sm:grid-cols-4 dark:divide-white/10">
-            {stats.map((s) => (
-              <div key={s.label} className="px-5 py-7 sm:px-7 sm:py-8">
-                <p className="font-display text-3xl font-semibold tracking-tight text-ink-900 sm:text-4xl dark:text-white">
-                  {s.value}
-                </p>
-                <p className="mt-1 text-sm font-medium text-ink-700 dark:text-ink-100">{s.label}</p>
-                <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.12em] text-ink-500 sm:tracking-[0.18em] dark:text-ink-400">
-                  {s.caption}
-                </p>
-              </div>
-            ))}
-          </div>
-          {mesh.ok ? (
-            <p className="border-t border-ink-200/60 px-5 py-2 text-center font-mono text-[10px] uppercase tracking-[0.14em] text-ink-500 sm:tracking-[0.22em] dark:border-white/10 dark:text-ink-400">
-              live snapshot · auto-refreshes every 5 min ·{" "}
+                Join the Discord
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              </a>
+              <a
+                href="https://www.facebook.com/groups/gulfcoastmesh"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-ghost"
+              >
+                Join the Facebook
+              </a>
               <Link
                 href="/meshmap"
-                className="text-gulf-700 hover:underline dark:text-gulf-300"
+                className="group inline-flex items-center gap-1.5 text-sm font-semibold text-gulf-700 dark:text-gulf-300"
               >
-                open live maps
+                See the live map
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
               </Link>
+            </div>
+
+            <p className="mt-6 text-sm text-ink-500 dark:text-ink-400">
+              <span className="font-semibold text-ink-800 dark:text-ink-100">Weekly Monday voice net</span> on Discord.
+              Everyone welcome, including people who have never touched a radio.{" "}
+              <Link href="/meetings" className="font-medium text-gulf-700 underline underline-offset-2 dark:text-gulf-300">
+                See the schedule
+              </Link>
+              .
             </p>
-          ) : null}
+          </div>
+
+          <div className="lg:col-span-7">
+            <LiveMap
+              src="https://explorer.gulfcoastmesh.org/embed-light"
+              srcDark="https://explorer.gulfcoastmesh.org/embed-dark"
+              title="Gulf Coast Mesh Explorer (live)"
+              label="Gulf Coast Explorer"
+              sub={
+                mesh.ok
+                  ? `MeshCore · ${fmt(mesh.totalMapped)} nodes · ${fmt(mesh.activeLast24h)} active in 24h`
+                  : "MeshCore · live packets & nodes"
+              }
+              aspect="aspect-[4/3] lg:aspect-[5/4] xl:aspect-[6/5]"
+            />
+          </div>
         </div>
       </section>
 
-      {/* NETWORK / FEATURES BENTO */}
-      <section id="network" className="container py-20 sm:py-28">
+      {/* NETWORK STATS ----------------------------------------------------- */}
+      <section id="network" className="container">
+        <dl className="surface grid grid-cols-2 overflow-hidden sm:grid-cols-4">
+          {stats.map((s, i) => (
+            <div
+              key={s.label}
+              className={
+                "px-5 py-6 sm:px-6 " +
+                // Odd cells start the second mobile column; cells 2-3 start
+                // the second mobile row. At sm every cell is in one row.
+                (i % 2 === 1 ? "border-l " : "sm:border-l ") +
+                (i >= 2 ? "border-t sm:border-t-0 " : "") +
+                (i === 0 ? "sm:border-l-0 " : "")
+              }
+              style={{ borderColor: "rgb(var(--line))" }}
+            >
+              <dd className="tabular font-display text-3xl font-semibold text-ink-900 sm:text-4xl dark:text-white">
+                {s.value}
+              </dd>
+              <dt className="mt-1 text-sm font-medium text-ink-700 dark:text-ink-200">{s.label}</dt>
+              <p className="mt-0.5 text-xs text-ink-500 dark:text-ink-400">{s.caption}</p>
+            </div>
+          ))}
+        </dl>
+
+        <p className="mt-3 text-sm text-ink-500 dark:text-ink-400">
+          Live snapshot, refreshed every 5 minutes.{" "}
+          <Link href="/meshmap" className="font-medium text-gulf-700 underline underline-offset-2 dark:text-gulf-300">
+            Open the full maps
+          </Link>{" "}
+          for the packet analyzer and the Meshtastic view.
+        </p>
+      </section>
+
+      {/* WHAT WE DO ------------------------------------------------------- */}
+      <section className="container py-20">
         <div className="max-w-2xl">
-          <span className="eyebrow">
-            <Sparkles className="h-3.5 w-3.5" aria-hidden />
-            The network
-          </span>
-          <h2 className="mt-4 font-display text-display-lg font-semibold tracking-tight text-ink-900 dark:text-white">
+          <p className="eyebrow">What we do</p>
+          <h2 className="mt-3 font-display text-display-lg font-semibold text-ink-900 dark:text-white">
             Rooftops, towers, and front porches, all on the same mesh.
           </h2>
         </div>
 
-        <div className="mt-12 grid gap-4 md:grid-cols-12 md:grid-rows-[auto_auto]">
-          {/* Big feature: maps */}
-          <div className="tile tile-accent md:col-span-7 md:row-span-2 md:p-9">
-            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-gulf-500/15 text-gulf-700 dark:text-gulf-300">
-              <MapIcon className="h-5 w-5" aria-hidden />
-            </span>
-            <h3 className="mt-5 font-display text-2xl font-semibold text-ink-900 dark:text-white">
-              Live maps you can actually read
-            </h3>
-            <p className="mt-3 max-w-xl text-sm leading-relaxed text-ink-600 dark:text-ink-300">
-              Watch Meshcore and Meshtastic activity ripple across the coast in real time. See who heard whom, which
-              repeaters are hot, and where the next install would matter most.
-            </p>
-            <div className="mt-8 grid gap-3 sm:grid-cols-2">
-              <Link
-                href="/meshmap"
-                className="surface group flex items-center justify-between rounded-2xl px-4 py-3 transition hover:-translate-y-0.5"
-              >
-                <span className="text-sm font-semibold text-ink-900 dark:text-white">Open Analyzer</span>
-                <ArrowUpRight className="h-4 w-4 text-gulf-700 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5 dark:text-gulf-300" aria-hidden />
-              </Link>
-              <Link
-                href="/meshmap"
-                className="surface group flex items-center justify-between rounded-2xl px-4 py-3 transition hover:-translate-y-0.5"
-              >
-                <span className="text-sm font-semibold text-ink-900 dark:text-white">Open Meshview</span>
-                <ArrowUpRight className="h-4 w-4 text-gulf-700 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5 dark:text-gulf-300" aria-hidden />
-              </Link>
+        <div className="mt-10 grid gap-6 md:grid-cols-3">
+          {work.map((w) => (
+            <div key={w.title}>
+              <w.icon className="h-5 w-5 text-gulf-700 dark:text-gulf-300" aria-hidden />
+              <h3 className="mt-4 font-display text-lg font-semibold text-ink-900 dark:text-white">{w.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-ink-600 dark:text-ink-300">{w.body}</p>
             </div>
-          </div>
-
-          {/* Resilience */}
-          <div className="tile md:col-span-5">
-            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-sand-400/15 text-sand-700 dark:text-sand-300">
-              <Wind className="h-5 w-5" aria-hidden />
-            </span>
-            <h3 className="mt-5 font-display text-lg font-semibold text-ink-900 dark:text-white">
-              Built for hurricane season
-            </h3>
-            <p className="mt-2 text-sm leading-relaxed text-ink-600 dark:text-ink-300">
-              When the cell network drops and the internet goes with it, the mesh keeps moving on solar, battery, or
-              a USB pack, backed by our repeaters on tall sites.
-            </p>
-          </div>
-
-          {/* Open */}
-          <div className="tile md:col-span-5">
-            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-ink-700/10 text-ink-700 dark:text-ink-200">
-              <Zap className="h-5 w-5" aria-hidden />
-            </span>
-            <h3 className="mt-5 font-display text-lg font-semibold text-ink-900 dark:text-white">
-              Open and tinkerable
-            </h3>
-            <p className="mt-2 text-sm leading-relaxed text-ink-600 dark:text-ink-300">
-              Open firmware, open docs, open neighbors. Hack the stack, file a PR, or just show up and ask questions.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* HOW IT WORKS */}
-      <section className="container py-20 sm:py-28">
-        <div className="max-w-2xl">
-          <span className="eyebrow">
-            <BookOpen className="h-3.5 w-3.5" aria-hidden />
-            How it works
-          </span>
-          <h2 className="mt-4 font-display text-display-lg font-semibold tracking-tight text-ink-900 dark:text-white">
-            From box-fresh radio to the coast-wide net in three steps.
-          </h2>
-        </div>
-
-        <ol className="mt-12 grid gap-4 lg:grid-cols-3">
-          {steps.map((s) => (
-            <li key={s.n} className="tile group flex h-full flex-col">
-              <div className="flex items-center justify-between">
-                <span className="grid h-11 w-11 place-items-center rounded-2xl bg-gulf-500/10 text-gulf-700 dark:text-gulf-300">
-                  <s.icon className="h-5 w-5" aria-hidden />
-                </span>
-                <span className="font-mono text-xs font-semibold text-ink-400 dark:text-ink-500">{s.n}</span>
-              </div>
-              <h3 className="mt-5 font-display text-lg font-semibold text-ink-900 dark:text-white">{s.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-ink-600 dark:text-ink-300">{s.body}</p>
-              {s.links?.length ? (
-                <ul className="mt-5 flex flex-wrap gap-2 border-t border-ink-200/60 pt-4 dark:border-white/10">
-                  {s.links.map((l) => {
-                    const linkClass =
-                      "group/link inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium text-gulf-700 transition hover:border-gulf-400/60 hover:bg-gulf-500/5 dark:border-white/10 dark:text-gulf-300";
-                    const linkStyle = { borderColor: "rgb(var(--line) / 0.7)" };
-                    const arrow = (
-                      <ArrowUpRight
-                        className="h-3 w-3 transition group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5"
-                        aria-hidden
-                      />
-                    );
-                    return (
-                      <li key={l.href}>
-                        {l.internal ? (
-                          <Link href={l.href} className={linkClass} style={linkStyle}>
-                            {l.label}
-                            {arrow}
-                          </Link>
-                        ) : (
-                          <a
-                            href={l.href}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={linkClass}
-                            style={linkStyle}
-                          >
-                            {l.label}
-                            {arrow}
-                          </a>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              ) : null}
-            </li>
           ))}
-        </ol>
+        </div>
       </section>
 
-      {/* REGIONS */}
-      <section className="container">
-        <div className="surface relative overflow-hidden p-8 sm:p-12">
-          <div className="grid gap-10 lg:grid-cols-[1fr_1.4fr] lg:items-center">
-            <div>
-              <span className="eyebrow">
-                <Compass className="h-3.5 w-3.5" aria-hidden />
-                Regions
-              </span>
-              <h2 className="mt-4 font-display text-display-lg font-semibold tracking-tight text-ink-900 dark:text-white">
-                Anchored in Louisiana,
-                <br />
-                growing the whole Gulf.
-              </h2>
-              <p className="mt-4 max-w-md text-sm leading-relaxed text-ink-600 dark:text-ink-300">
-                Today the live network is concentrated across Louisiana. The mission is bigger: neighbors helping
-                neighbors from Corpus Christi to Panama City. If you’re elsewhere on the Gulf, come build with us.
-              </p>
-            </div>
-            <ul className="grid gap-3 sm:grid-cols-2">
-              {regions.map((r) => {
-                const count = mesh.byState[r.code] ?? 0;
-                const live = count > 0 || r.forceLive === true;
-                return (
-                  <li
-                    key={r.code}
-                    className={
-                      "group relative flex items-center gap-4 rounded-2xl border px-4 py-3.5 transition hover:-translate-y-0.5 " +
-                      (live
-                        ? "border-gulf-400/50 bg-gulf-500/5 dark:border-gulf-400/30 dark:bg-gulf-500/10"
-                        : "hover:border-gulf-400/30 dark:border-white/10")
-                    }
-                    style={!live ? { borderColor: "rgb(var(--line) / 0.7)" } : undefined}
-                  >
-                    <span
-                      className={
-                        "grid h-10 w-10 shrink-0 place-items-center rounded-xl font-mono text-xs font-bold " +
-                        (live
-                          ? "bg-gulf-500/20 text-gulf-700 dark:text-gulf-200"
-                          : "bg-ink-700/5 text-ink-500 dark:bg-white/5 dark:text-ink-400")
-                      }
-                    >
-                      {r.code}
+      {/* GET STARTED ------------------------------------------------------ */}
+      <section
+        className="border-y py-20"
+        style={{ borderColor: "rgb(var(--line))", background: "rgb(var(--bg-sunken))" }}
+      >
+        <div className="container">
+          <div className="max-w-2xl">
+            <p className="eyebrow">Get started</p>
+            <h2 className="mt-3 font-display text-display-lg font-semibold text-ink-900 dark:text-white">
+              From a box-fresh radio to the coast-wide net in three steps.
+            </h2>
+          </div>
+
+          <ol className="mt-10 grid gap-5 lg:grid-cols-3">
+            {steps.map((s) => (
+              <li key={s.n} className="tile flex h-full flex-col">
+                <div className="flex items-center gap-3">
+                  <s.icon className="h-5 w-5 text-gulf-700 dark:text-gulf-300" aria-hidden />
+                  <span className="font-mono text-xs font-semibold text-ink-400 dark:text-ink-500">{s.n}</span>
+                </div>
+                <h3 className="mt-4 font-display text-lg font-semibold text-ink-900 dark:text-white">{s.title}</h3>
+                <p className="mt-2 flex-1 text-sm leading-relaxed text-ink-600 dark:text-ink-300">{s.body}</p>
+                <Link
+                  href={s.href}
+                  className="group mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-gulf-700 dark:text-gulf-300"
+                >
+                  {s.cta}
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
+                </Link>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* COVERAGE --------------------------------------------------------- */}
+      <section className="container py-20">
+        <div className="grid gap-10 lg:grid-cols-[1fr_1.3fr] lg:gap-16">
+          <div>
+            <p className="eyebrow">Coverage</p>
+            <h2 className="mt-3 font-display text-display-lg font-semibold text-ink-900 dark:text-white">
+              Anchored in Louisiana, growing the whole Gulf.
+            </h2>
+            <p className="mt-4 max-w-md text-sm leading-relaxed text-ink-600 dark:text-ink-300">
+              Today the live network is concentrated across Louisiana. The mission is bigger: neighbors helping
+              neighbors from Corpus Christi to Panama City. If you are elsewhere on the Gulf, come build with us.
+            </p>
+          </div>
+
+          <ul className="surface divide-y" style={{ borderColor: "rgb(var(--line))" }}>
+            {regions.map((r) => {
+              const count = mesh.byState[r.code] ?? 0;
+              const live = count > 0 || r.forceLive === true;
+              return (
+                <li
+                  key={r.code}
+                  className="flex items-center gap-4 px-5 py-4"
+                  style={{ borderColor: "rgb(var(--line))" }}
+                >
+                  <span className="w-7 shrink-0 font-mono text-xs font-bold text-ink-500 dark:text-ink-400">
+                    {r.code}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-ink-900 dark:text-white">{r.name}</p>
+                    <p className="truncate text-xs text-ink-500 dark:text-ink-400">{r.cities}</p>
+                  </div>
+                  {live ? (
+                    <span className="tabular shrink-0 font-mono text-xs font-semibold text-gulf-700 dark:text-gulf-300">
+                      {count > 0 ? `${fmt(count)} live` : "Live"}
                     </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="font-display text-sm font-semibold text-ink-900 dark:text-white">{r.name}</p>
-                        {live ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-gulf-500/15 px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.16em] text-gulf-700 dark:text-gulf-200">
-                            <span className="h-1 w-1 rounded-full bg-gulf-500" />
-                            {count > 0 ? `${fmt(count)} live` : "Live"}
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.16em] text-sand-700 dark:border-white/10 dark:text-sand-300" style={{ borderColor: "rgb(var(--line) / 0.7)" }}>
-                            <span className="h-1 w-1 rounded-full bg-sand-400" />
-                            Coming soon™
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-ink-500 dark:text-ink-400">{r.cities}</p>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
+                  ) : (
+                    <span className="shrink-0 font-mono text-xs text-ink-400 dark:text-ink-500">Planned</span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </section>
+
+      {/* GET INVOLVED ----------------------------------------------------- */}
+      <section
+        className="relative overflow-hidden border-t py-20"
+        style={{ borderColor: "rgb(var(--line))", background: "rgb(var(--bg-sunken))" }}
+      >
+        <div className="pointer-events-none absolute inset-0 grid-tech" aria-hidden />
+        <div className="container relative max-w-3xl text-center">
+          <h2 className="font-display text-display-lg font-semibold text-ink-900 dark:text-white">
+            No radio required to get involved.
+          </h2>
+          <p className="mt-4 text-pretty leading-relaxed text-ink-600 dark:text-ink-300">
+            Come to the Monday net, ask questions, lend a rooftop, or help us write the docs. The network grows one
+            neighbor at a time.
+          </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <a
+              href="https://discord.gulfcoastmesh.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary"
+            >
+              Join the Discord
+            </a>
+            <a
+              href="https://www.facebook.com/groups/gulfcoastmesh"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-ghost"
+            >
+              Join the Facebook group
+            </a>
+            <Link href="/emailsignup" className="btn-ghost">
+              Get the newsletter
+            </Link>
           </div>
         </div>
       </section>
     </>
-  );
-}
-
-function Pill({ icon: Icon, children }: { icon: React.ComponentType<{ className?: string }>; children: React.ReactNode }) {
-  return (
-    <span
-      className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium text-ink-700 dark:text-ink-100"
-      style={{ borderColor: "rgb(var(--line) / 0.7)" }}
-    >
-      <Icon className="h-3.5 w-3.5 text-gulf-600 dark:text-gulf-300" />
-      {children}
-    </span>
   );
 }

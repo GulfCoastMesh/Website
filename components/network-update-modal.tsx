@@ -87,18 +87,18 @@ export function NetworkUpdateModal() {
         aria-label="Dismiss network update notice"
         onClick={dismiss}
         tabIndex={-1}
-        className="absolute inset-0 cursor-default bg-ink-950/70 backdrop-blur-sm"
+        className="absolute inset-0 cursor-default bg-ink-950/70"
       />
 
       <div
-        className="relative w-full max-w-lg overflow-hidden rounded-3xl border bg-white p-6 shadow-glow sm:p-7 dark:border-white/15 dark:bg-ink-800"
-        style={{ borderColor: "rgb(var(--line) / 0.7)" }}
+        className="relative w-full max-w-lg overflow-hidden rounded-xl border bg-white p-6 shadow-lift sm:p-7 dark:bg-ink-800"
+        style={{ borderColor: "rgb(var(--line))" }}
       >
         <button
           type="button"
           onClick={dismiss}
           aria-label="Close"
-          className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-xl text-ink-500 transition hover:bg-ink-100 hover:text-ink-900 dark:text-ink-200 dark:hover:bg-white/10 dark:hover:text-white"
+          className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-xl text-ink-500 transition hover:bg-ink-100 hover:text-ink-900 dark:text-ink-200 dark:hover:text-white"
         >
           <X className="h-5 w-5" aria-hidden />
         </button>
@@ -171,7 +171,7 @@ export function NetworkUpdateModal() {
           <button
             type="button"
             onClick={dismiss}
-            className="ml-auto rounded-full px-3 py-2 text-sm font-medium text-ink-600 transition hover:bg-ink-100 hover:text-ink-900 dark:text-ink-200 dark:hover:bg-white/10 dark:hover:text-white"
+            className="ml-auto rounded-full px-3 py-2 text-sm font-medium text-ink-600 transition hover:bg-ink-100 hover:text-ink-900 dark:text-ink-200 dark:hover:text-white"
           >
             Dismiss
           </button>

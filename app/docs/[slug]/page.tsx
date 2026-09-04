@@ -63,13 +63,13 @@ export default async function DocsSlugPage({
       <nav
         aria-label="Docs pagination"
         className="mt-16 grid gap-4 border-t pt-8 sm:grid-cols-2"
-        style={{ borderColor: "rgb(var(--line) / 0.6)" }}
+        style={{ borderColor: "rgb(var(--line))" }}
       >
         {prev ? (
           <Link
             href={prev.slug === "index" ? "/docs" : `/docs/${prev.slug}`}
-            className="group flex flex-col rounded-2xl border bg-white/60 px-5 py-4 transition hover:-translate-y-0.5 hover:bg-white dark:border-white/10 dark:bg-ink-900/60 dark:hover:bg-ink-900/80"
-            style={{ borderColor: "rgb(var(--line) / 0.6)" }}
+            className="group flex flex-col rounded-lg border bg-[rgb(var(--bg-elevated))] px-5 py-4 transition hover:bg-[rgb(var(--bg-sunken))]"
+            style={{ borderColor: "rgb(var(--line))" }}
           >
             <span className="inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-500 dark:text-ink-400">
               <ArrowLeft className="h-3 w-3" aria-hidden />
@@ -85,8 +85,8 @@ export default async function DocsSlugPage({
         {next ? (
           <Link
             href={`/docs/${next.slug}`}
-            className="group flex flex-col rounded-2xl border bg-white/60 px-5 py-4 text-right transition hover:-translate-y-0.5 hover:bg-white sm:items-end dark:border-white/10 dark:bg-ink-900/60 dark:hover:bg-ink-900/80"
-            style={{ borderColor: "rgb(var(--line) / 0.6)" }}
+            className="group flex flex-col rounded-lg border bg-[rgb(var(--bg-elevated))] px-5 py-4 text-right transition hover:bg-[rgb(var(--bg-sunken))] sm:items-end"
+            style={{ borderColor: "rgb(var(--line))" }}
           >
             <span className="inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-500 dark:text-ink-400">
               Next

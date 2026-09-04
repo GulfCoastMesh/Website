@@ -41,7 +41,7 @@ export default function MeshmapPage() {
       <section className="mt-12">
         <div className="mb-4 flex items-end justify-between gap-4">
           <div>
-            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-gulf-700 dark:text-gulf-300">
+            <p className="eyebrow">
               Primary network
             </p>
             <h2 className="mt-1 font-display text-2xl font-semibold tracking-tight text-ink-900 sm:text-3xl dark:text-white">
@@ -66,7 +66,7 @@ export default function MeshmapPage() {
       <section className="mt-12">
         <div className="mb-4 flex items-end justify-between gap-4">
           <div>
-            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-sand-700 dark:text-sand-300">
+            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-500 dark:text-ink-400">
               Meshtastic footprint
             </p>
             <h2 className="mt-1 font-display text-2xl font-semibold tracking-tight text-ink-900 sm:text-3xl dark:text-white">
@@ -114,8 +114,8 @@ export default function MeshmapPage() {
             </Step>
           </ol>
 
-          <div className="surface-strong overflow-hidden rounded-2xl p-1">
-            <div className="rounded-xl border border-ink-200/60 bg-white/80 p-2 dark:border-white/10 dark:bg-ink-900/70">
+          <div className="surface-strong overflow-hidden rounded-lg p-1">
+            <div className="rounded-xl border border-[rgb(var(--line))] bg-[rgb(var(--bg-elevated))] p-2 ">
               <div className="flex items-center justify-between px-3 pb-2 pt-1">
                 <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500 dark:text-ink-400">
                   MQTT module settings
@@ -126,8 +126,8 @@ export default function MeshmapPage() {
                 {mqttRows.map(([k, v]) => (
                   <div
                     key={k}
-                    className="flex items-center justify-between gap-3 rounded-lg border bg-white/70 px-3 py-2 dark:border-white/10 dark:bg-white/5"
-                    style={{ borderColor: "rgb(var(--line) / 0.6)" }}
+                    className="flex items-center justify-between gap-3 rounded-lg border bg-[rgb(var(--bg-elevated))] px-3 py-2"
+                    style={{ borderColor: "rgb(var(--line))" }}
                   >
                     <dt className="text-xs text-ink-600 dark:text-ink-300">{k}</dt>
                     <dd>
@@ -183,8 +183,8 @@ function Step({
 }) {
   return (
     <li
-      className="flex gap-4 rounded-2xl border bg-white/60 p-4 dark:border-white/10 dark:bg-white/5"
-      style={{ borderColor: "rgb(var(--line) / 0.6)" }}
+      className="flex gap-4 rounded-lg border bg-[rgb(var(--bg-elevated))] p-4"
+      style={{ borderColor: "rgb(var(--line))" }}
     >
       <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gulf-500/15 font-mono text-xs font-bold text-gulf-700 dark:text-gulf-300">
         {n}
