@@ -146,6 +146,32 @@ export function SiteFooter() {
           </p>
         </div>
 
+        <div className="mt-10 flex flex-wrap items-center justify-between gap-4 rounded-xl border p-4 text-xs" style={{ borderColor: "rgb(var(--line))", background: "rgb(var(--bg-elevated) / 0.7)" }}>
+          <div className="flex items-center gap-2.5">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gulf-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-gulf-500" />
+            </span>
+            <span className="font-medium text-ink-700 dark:text-ink-200">
+              Live Background Network Traffic
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-ink-500 dark:text-ink-400">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "#0d9488" }} /> Advertisements
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "#2563eb" }} /> Messages
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "#7c3aed" }} /> Routing
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "#d97706" }} /> Telemetry & Control
+            </span>
+          </div>
+        </div>
+
         <p className="mt-8 text-xs text-ink-500 dark:text-ink-400">
           © {new Date().getFullYear()} Gulf Coast Mesh Community
         </p>
