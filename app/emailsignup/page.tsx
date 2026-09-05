@@ -49,14 +49,8 @@ export default function EmailSignupPage() {
     <div className="container pb-24">
       <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[1fr_1.1fr] lg:items-center">
         <div>
-          <span className="eyebrow">
-            <Mail className="h-3.5 w-3.5" aria-hidden />
-            Newsletter
-          </span>
-          <h1 className="mt-5 font-display text-display-xl font-semibold tracking-tight text-balance text-ink-900 dark:text-white">
-            Network signal,
-            <br />
-            <span className="gradient-text">delivered to your inbox.</span>
+          <h1 className="font-display text-display-xl font-semibold tracking-tight text-balance text-ink-900 dark:text-white">
+            Network signal, delivered to your inbox.
           </h1>
           <p className="mt-5 text-pretty text-lg text-ink-600 dark:text-ink-300">
             Two clean lists — pick what you want. No spam, no auto-enrollment, no surprises.

@@ -9,9 +9,6 @@ export const revalidate = 3600;
 // deploy still renders on first visit (and gets cached per `revalidate`
 // above), so new docs pages don't need a redeploy to go live.
 
-const DOCS_REPO_RAW_HTML =
-  "https://github.com/GulfCoastMesh/louisianameshcommunity.github.io/blob/main/docs";
-
 export async function generateStaticParams() {
   return (await getAllSlugs()).map((slug) => ({ slug }));
 }

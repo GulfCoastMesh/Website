@@ -60,28 +60,25 @@ single technical texture back in two places on purpose.
   - `--accent-solid` — button fills. Always pairs with `ink-950` text (6.3:1);
     white on a fill this bright would fail. Hover goes brighter, not darker.
 - **Other theme variables**: `--bg`, `--bg-elevated`, `--bg-sunken`, `--fg`,
-  `--fg-muted`, `--line`, `--line-strong`, `--grid-line`, `--wash`. Light and
-  dark are real themes — one token flips both.
-- **Background**: the page is flat. Texture is a single band declared once in
-  `app/layout.tsx` under the header, so every page gets it identically:
-  `.grid-tech` (a 44px brand-tinted engineering grid) and `.wash-brand` (one
-  soft radial, one corner). Both are radially masked, so the band's fixed
-  height only bounds the fade. The homepage's closing CTA re-uses `.grid-tech`
-  so the page opens and shuts on the same motif. Section rhythm otherwise
-  comes from `--bg-sunken` bands and hairline borders.
-- **Surfaces**: `surface` / `surface-strong` / `tile` are one flat card — 1px
-  border, solid background, no glass or backdrop blur. `tile` hover moves the
-  border colour only. `tile-accent` marks the primary card in a group with a
-  single inset accent rule.
-- **Buttons**: `btn-primary` (brand fill, dark ink) and `btn-ghost` (bordered).
-  `btn-facebook` is an alias of `btn-ghost` — one primary action per view.
-- **Labels**: `eyebrow` is a quiet mono label, not a bordered pill.
-  `gradient-text` is kept as a name but is a solid `--accent-bright`.
+  `--fg-muted`, `--line`, `--line-strong`. Light mode uses a pure `#ffffff` canvas
+  with `#f8fafc` sunken tones and `#e2e8f0` crisp slate borders; dark mode uses
+  deep obsidian slate `#0b0f19` canvas, `#111827` elevated surfaces, and `#1f2937` borders.
+- **Background & Surfaces**: The site uses clean, natural contrast without artificial
+  mathematical grid lines (`.grid-tech`) or radial glow blobs (`.wash-brand`).
+  Surfaces (`surface`, `tile`) feature crisp 1px borders, solid fills, and no synthetic glass/backdrop blur.
+- **Buttons & Badges**:
+  - `btn-primary` (brand fill, dark ink) and `btn-ghost` (bordered).
+  - `.badge` and `.badge-accent` for technical hardware and frequency specifications (`915 MHz`, `MeshCore`, `Open Source`).
+  - Steady status indicators instead of distracting pulsating radar dots.
+- **Homepage Structure**:
+  - Authoritative hero copy focused on community and storm resilience.
+  - Live network telemetry and framed live explorer embed.
+  - "How It Actually Works" explaining 915 MHz ISM radio, multi-hop mesh routing, and hurricane resilience.
+  - Real hardware pathways (Companion Radio, Solar Rooftop Repeater, Room Server & Base Station).
+  - Community spotlight on the weekly Monday Voice Net (8:00 PM CST on Discord).
+  - Regional coverage directory with node counts and repeater hosting invitations.
 - **Type**: `font-display` (Space Grotesk) headings, `font-sans` body,
-  `font-mono` for data and labels only. Display sizes top out around 3.5rem;
-  add `.tabular` to any figure sitting in a column of figures.
-- **Motion**: `fade-up`, plus `animate-ping` on genuine live indicators. The
-  `pulse-ring` / `drift` / `shimmer` animations were removed.
+  `font-mono` for data, badges, and technical specs. Figures use `.tabular`.
 
 ## Pages
 

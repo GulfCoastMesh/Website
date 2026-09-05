@@ -21,6 +21,8 @@ type LiveMapProps = {
   sub?: string;
   /** Tailwind aspect-ratio classes for the frame, e.g. "aspect-[4/3] lg:aspect-[16/11]". */
   aspect?: string;
+  /** Optional custom URL for the "Open ↗" button. If not specified, falls back to `resolvedSrc`. */
+  openUrl?: string;
   /** Whether to render a "Open ↗" link to the source URL. Defaults to true. */
   showOpenLink?: boolean;
   /** Drop the card chrome (border, padding, header) and render only the
@@ -34,6 +36,7 @@ type LiveMapProps = {
 export function LiveMap({
   src,
   srcDark,
+  openUrl,
   title,
   label,
   sub,
@@ -47,6 +50,7 @@ export function LiveMap({
   // Wait until after hydration so we don't SSR embed-light then swap to
   // embed-dark (that tears down Leaflet mid-tile-load → _map is null).
   const resolvedSrc = theme === "dark" && srcDark ? srcDark : src;
+  const targetOpenUrl = openUrl ?? resolvedSrc;
 
   const [loaded, setLoaded] = useState(false);
   const [errored, setErrored] = useState(false);
@@ -110,7 +114,7 @@ export function LiveMap({
           <p className="font-display text-sm font-semibold text-ink-900 dark:text-white">
             Couldn’t load the live map
           </p>
-          <a href={resolvedSrc} target="_blank" rel="noopener noreferrer" className="btn-primary">
+          <a href={targetOpenUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">
             Open {label}
             <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
           </a>
@@ -130,17 +134,14 @@ export function LiveMap({
       >
         <div className="min-w-0">
           <p className="flex items-center gap-2 text-sm font-semibold text-ink-900 dark:text-white">
-            <span className="relative flex h-1.5 w-1.5 shrink-0" aria-hidden>
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gulf-500 opacity-40" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-gulf-600 dark:bg-gulf-400" />
-            </span>
+            <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" aria-hidden />
             {label}
           </p>
           {sub ? <p className="mt-0.5 text-xs text-ink-500 dark:text-ink-400">{sub}</p> : null}
         </div>
         {showOpenLink ? (
           <a
-            href={resolvedSrc}
+            href={targetOpenUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="group inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-gulf-700 dark:text-gulf-300"

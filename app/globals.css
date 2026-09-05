@@ -4,38 +4,30 @@
 
 @layer base {
   :root {
-    --bg: 245 250 251;
+    --bg: 255 255 255;
     --bg-elevated: 255 255 255;
-    --bg-sunken: 232 242 245;
-    --fg: 12 36 54;
-    --fg-muted: 59 90 110;
-    --line: 206 226 233;
-    --line-strong: 170 200 211;
-    /* Brightest teal on the logo's hue that still clears AA 4.5:1 on white,
-       so links and 11px labels stay legible at full brand brightness. */
-    --accent: 33 130 142;
-    /* Display type only — the 3:1 large-text threshold buys more brightness. */
-    --accent-bright: 19 154 167;
-    /* Bright brand fill; always pairs with ink-950 text, never white. */
-    --accent-solid: 34 170 180;
-    --grid-line: rgba(13, 96, 112, 0.14);
-    --wash: rgba(34, 170, 180, 0.18);
+    --bg-sunken: 248 250 252;
+    --fg: 15 23 42;
+    --fg-muted: 71 85 105;
+    --line: 226 232 240;
+    --line-strong: 203 213 225;
+    --accent: 14 116 144;
+    --accent-bright: 2 132 199;
+    --accent-solid: 14 165 233;
     color-scheme: light;
   }
 
   html.dark {
-    --bg: 6 26 40;
-    --bg-elevated: 12 36 54;
-    --bg-sunken: 4 19 29;
-    --fg: 228 238 244;
-    --fg-muted: 157 187 205;
-    --line: 29 52 70;
-    --line-strong: 45 71 87;
-    --accent: 110 215 200;
-    --accent-bright: 110 215 200;
-    --accent-solid: 34 170 180;
-    --grid-line: rgba(110, 215, 200, 0.10);
-    --wash: rgba(73, 199, 204, 0.13);
+    --bg: 11 15 25;
+    --bg-elevated: 17 24 39;
+    --bg-sunken: 6 9 17;
+    --fg: 248 250 252;
+    --fg-muted: 148 163 184;
+    --line: 30 41 59;
+    --line-strong: 51 65 85;
+    --accent: 45 212 191;
+    --accent-bright: 56 189 248;
+    --accent-solid: 14 165 233;
     color-scheme: dark;
   }
 
@@ -69,28 +61,23 @@
 }
 
 @layer components {
-  /* ---- Page background --------------------------------------------------
-     The page itself stays flat. Texture is applied deliberately, to the hero
-     and the closing band, instead of the old fixed grid + noise + triple
-     radial wash sitting behind every page. */
   .bg-canvas {
     background: rgb(var(--bg));
   }
 
-  /* Fine engineering grid, brand-tinted, faded out at the edges so it reads
-     as texture rather than wallpaper. */
-  .grid-tech {
-    background-image:
-      linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
-      linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
-    background-size: 44px 44px;
-    -webkit-mask-image: radial-gradient(ellipse 85% 90% at 50% 0%, #000 10%, transparent 75%);
-    mask-image: radial-gradient(ellipse 85% 90% at 50% 0%, #000 10%, transparent 75%);
+  /* ---- Badges & Pills ---------------------------------------------------- */
+  .badge {
+    @apply inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 font-mono text-xs font-medium tracking-wide transition-colors;
+    border-color: rgb(var(--line));
+    background: rgb(var(--bg-sunken));
+    color: rgb(var(--fg-muted));
   }
 
-  /* A single soft brand wash. One gradient, one corner. */
-  .wash-brand {
-    background: radial-gradient(760px 420px at 88% -15%, var(--wash), transparent 62%);
+  .badge-accent {
+    @apply badge;
+    border-color: rgb(var(--accent) / 0.3);
+    background: rgb(var(--accent) / 0.08);
+    color: rgb(var(--accent));
   }
 
   /* ---- Surfaces ---------------------------------------------------------

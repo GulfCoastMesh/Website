@@ -55,8 +55,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f4f8fa" },
-    { media: "(prefers-color-scheme: dark)", color: "#061a28" },
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b0f19" },
   ],
 };
 
@@ -98,12 +98,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         </a>
         <div className="flex min-h-screen flex-col">
           <SiteHeader />
-          {/* One texture band sits under the header for every page, rather
-              than each page re-declaring its own. Both layers are radially
-              masked, so the fixed height just bounds the fade. */}
-          <main id="main" className="relative flex-1 pt-10 sm:pt-14">
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-[36rem] grid-tech" aria-hidden />
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-[36rem] wash-brand" aria-hidden />
+          <main id="main" className="relative flex-1 pt-8 sm:pt-12">
             <div className="relative">{children}</div>
           </main>
           <SiteFooter />
