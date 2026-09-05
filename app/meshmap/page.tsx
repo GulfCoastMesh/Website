@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Globe2, Radio } from "lucide-react";
 import { LiveMap } from "@/components/live-map";
 
 export const metadata = {
@@ -24,11 +23,7 @@ export default function MeshmapPage() {
   return (
     <div className="container pb-24">
       <header className="mx-auto max-w-3xl text-center">
-        <span className="eyebrow mx-auto">
-          <Globe2 className="h-3.5 w-3.5" aria-hidden />
-          Live maps
-        </span>
-        <h1 className="mt-5 font-display text-display-xl font-semibold tracking-tight text-balance text-ink-900 dark:text-white">
+        <h1 className="font-display text-display-xl font-semibold tracking-tight text-balance text-ink-900 dark:text-white">
           See the mesh lighting up the coast.
         </h1>
         <p className="mt-5 text-pretty text-lg text-ink-600 dark:text-ink-300">
@@ -41,10 +36,7 @@ export default function MeshmapPage() {
       <section className="mt-12">
         <div className="mb-4 flex items-end justify-between gap-4">
           <div>
-            <p className="eyebrow">
-              Primary network
-            </p>
-            <h2 className="mt-1 font-display text-2xl font-semibold tracking-tight text-ink-900 sm:text-3xl dark:text-white">
+            <h2 className="font-display text-2xl font-semibold tracking-tight text-ink-900 sm:text-3xl dark:text-white">
               MeshCore — Live analyzer
             </h2>
           </div>
@@ -66,10 +58,7 @@ export default function MeshmapPage() {
       <section className="mt-12">
         <div className="mb-4 flex items-end justify-between gap-4">
           <div>
-            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-500 dark:text-ink-400">
-              Meshtastic footprint
-            </p>
-            <h2 className="mt-1 font-display text-2xl font-semibold tracking-tight text-ink-900 sm:text-3xl dark:text-white">
+            <h2 className="font-display text-2xl font-semibold tracking-tight text-ink-900 sm:text-3xl dark:text-white">
               Meshtastic — Meshview
             </h2>
           </div>
@@ -91,11 +80,7 @@ export default function MeshmapPage() {
       <section className="surface relative mt-16 overflow-hidden p-8 sm:p-12">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="max-w-xl">
-            <span className="eyebrow">
-              <Radio className="h-3.5 w-3.5" aria-hidden />
-              Add your node
-            </span>
-            <h2 className="mt-4 font-display text-display-lg font-semibold tracking-tight text-ink-900 dark:text-white">
+            <h2 className="font-display text-display-lg font-semibold tracking-tight text-ink-900 dark:text-white">
               Put your Meshtastic device on the map via MQTT
             </h2>
           </div>

@@ -51,11 +51,7 @@ export default async function MeetingsPage() {
   return (
     <div className="container pb-24">
       <header className="mx-auto max-w-3xl text-center">
-        <span className="eyebrow mx-auto">
-          <CalendarDays className="h-3.5 w-3.5" aria-hidden />
-          Meetings
-        </span>
-        <h1 className="mt-5 font-display text-display-xl font-semibold tracking-tight text-balance text-ink-900 dark:text-white">
+        <h1 className="font-display text-display-xl font-semibold tracking-tight text-balance text-ink-900 dark:text-white">
           Every Monday on the mesh.
         </h1>
         <p className="mt-5 text-pretty text-lg text-ink-600 dark:text-ink-300">
@@ -86,10 +82,7 @@ export default async function MeetingsPage() {
       <section id="archive" className="mt-20">
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
-            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-gulf-700 dark:text-gulf-300">
-              Archive
-            </p>
-            <h2 className="mt-1 font-display text-2xl font-semibold tracking-tight text-ink-900 sm:text-3xl dark:text-white">
+            <h2 className="font-display text-2xl font-semibold tracking-tight text-ink-900 sm:text-3xl dark:text-white">
               Past meetings
             </h2>
           </div>

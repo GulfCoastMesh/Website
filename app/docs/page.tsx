@@ -10,8 +10,6 @@ export const metadata = {
     "Field guides, hardware recommendations, and setup walkthroughs for the Gulf Coast Mesh.",
 };
 
-const DOCS_REPO_HTML =
-  "https://github.com/GulfCoastMesh/louisianameshcommunity.github.io";
 const LEGACY_DOCS_URL = "https://docs.gulfcoastmesh.org";
 
 export default async function DocsIndexPage() {
