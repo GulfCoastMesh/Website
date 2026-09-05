@@ -29,7 +29,7 @@ Other scripts:
 ```
 app/
   layout.tsx            Root layout: fonts, theme bootstrap, header, footer
-  page.tsx              Homepage (hero with embedded Analyzer, live stats, network bento, Meshcore stack snapshot, how-it-works, regions)
+  page.tsx              Homepage (mission, live network panel with map + stats, what we do, get started, coverage, get involved)
   meshmap/page.tsx      Live maps (Meshcore Analyzer + Meshtastic Meshview) and MQTT instructions
   links/page.tsx        Curated guides, community, and upstream resources
   emailsignup/page.tsx  Newsletter signup (Listmonk-backed)
@@ -37,8 +37,8 @@ app/
   globals.css           Design tokens, surface/utility classes
   icon.svg              Browser tab icon
 components/
-  site-header.tsx       Floating glass nav with GitHub + theme toggle
-  site-footer.tsx       Multi-column footer with supporters/partners
+  site-header.tsx       Sticky solid nav with GitHub + theme toggle
+  site-footer.tsx       Four-column footer with supporters/partners
   theme-toggle.tsx      Light/dark switcher button
   theme-script.tsx      Inline pre-paint script (no FOUC)
   live-map.tsx          iframe wrapper for embedded maps (skeleton + error fallback)
@@ -53,17 +53,17 @@ eslint.config.mjs       Flat ESLint config wrapping next/core-web-vitals + next/
 
 ## Design language
 
-- **Type**: Inter (UI), Space Grotesk (display), JetBrains Mono (eyebrows / monospace details).
-- **Color**: deep ink navy, vibrant gulf teal/cyan, warm sand amber, coral accents.
-- **Surfaces**: subtle glass cards (`.surface`, `.surface-strong`, `.tile`, `.tile-accent`).
-- **Motion**: pre-paint theme bootstrap (no flash), gentle hover lifts, animated skeleton on map embeds.
-- **Accessibility**: focus rings, `prefers-reduced-motion` honored, semantic landmarks.
+- **Type**: Inter (UI), Space Grotesk (display), JetBrains Mono (data + labels).
+- **Color**: sampled from `public/logo.svg` — bright gulf teal on navy-tinted
+  neutrals. Warm sand is reserved for status, never decoration.
+- **Contrast**: three accent tokens split the small-text / display / button-fill
+  jobs so brand brightness never costs legibility. All pairs clear WCAG AA.
+- **Surfaces**: flat 1px-bordered cards (`.surface`, `.tile`) — no glass,
+  no glow.
+- **Texture**: one masked grid + wash band, declared once in the root layout.
+- **Motion**: pre-paint theme bootstrap (no flash), `fade-up`, and a live dot
+  on genuinely live data. `prefers-reduced-motion` honored.
+- **Accessibility**: skip link, focus rings, semantic landmarks, tabular
+  numerals on data.
 
-## Replacing content
-
-- **Newsletter** — list IDs and Listmonk endpoint live at the top of `app/emailsignup/page.tsx` (`ALERTS_LIST_ID`, `NEWS_LIST_ID`, and the `fetch()` URL).
-- **Supporters / partners** — individual supporters in `components/site-footer.tsx`; partner logos in `lib/partners.ts` with host logos in `public/supporters/`.
-- **Hero copy, stats, regions, how-it-works** — `app/page.tsx`. Regions support a `forceLive: true` flag to show as live even when the upstream API count is zero (currently used for Mississippi).
-- **GitHub org link** — `components/site-header.tsx` and `components/site-footer.tsx` both point at [`github.com/GulfCoastMesh`](https://github.com/GulfCoastMesh).
-- **Mesh Monitor API** — [`API.md`](./API.md) and [`openapi.yaml`](./openapi.yaml) document the API. `/mesh-monitor` hosts reserve, duplicates, and network reports (proxied via `app/api/mesh-monitor/*` and `lib/mesh-monitor.ts`).
-- **Setup wizard** — repeater flow in `app/setup/page.tsx` reserves MeshBuddy prefixes via `/api/meshbuddy/*` (proxies to `MESHBUDDY_API_BASE_URL`, default `https://meshbuddy.gulfcoastmesh.org`). Email is required for reservation; firmware versions come from MeshCore GitHub releases.
+See [`NOTES.md`](./NOTES.md) for the full token list and the reasoning.

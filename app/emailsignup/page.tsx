@@ -49,14 +49,8 @@ export default function EmailSignupPage() {
     <div className="container pb-24">
       <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[1fr_1.1fr] lg:items-center">
         <div>
-          <span className="eyebrow">
-            <Mail className="h-3.5 w-3.5" aria-hidden />
-            Newsletter
-          </span>
-          <h1 className="mt-5 font-display text-display-xl font-semibold tracking-tight text-balance text-ink-900 dark:text-white">
-            Network signal,
-            <br />
-            <span className="gradient-text">delivered to your inbox.</span>
+          <h1 className="font-display text-display-xl font-semibold tracking-tight text-balance text-ink-900 dark:text-white">
+            Network signal, delivered to your inbox.
           </h1>
           <p className="mt-5 text-pretty text-lg text-ink-600 dark:text-ink-300">
             Two clean lists — pick what you want. No spam, no auto-enrollment, no surprises.
@@ -87,7 +81,7 @@ export default function EmailSignupPage() {
                   Summaries from community meetings and other news. Up to one email a week.
                 </p>
               </div>
-              <span className="ml-auto inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-700 dark:border-white/10 dark:text-ink-100" style={{ borderColor: "rgb(var(--line) / 0.7)" }}>
+              <span className="ml-auto inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-700 dark:text-ink-100" style={{ borderColor: "rgb(var(--line))" }}>
                 Optional
               </span>
             </li>
@@ -95,14 +89,12 @@ export default function EmailSignupPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="surface-strong relative overflow-hidden p-8 sm:p-10">
-          <div className="pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full bg-gulf-400/20 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-12 -left-12 h-44 w-44 rounded-full bg-sand-400/15 blur-3xl" />
 
           <div className="relative">
             <label htmlFor="email" className="block font-display text-sm font-semibold text-ink-900 dark:text-white">
               Email address
             </label>
-            <div className="mt-2 flex items-center gap-2 rounded-2xl border bg-white px-3 py-1 focus-within:ring-2 focus-within:ring-gulf-400 dark:border-white/10 dark:bg-ink-900" style={{ borderColor: "rgb(var(--line) / 0.7)" }}>
+            <div className="mt-2 flex items-center gap-2 rounded-lg border bg-white px-3 py-1 focus-within:ring-2 focus-within:ring-gulf-400 dark:bg-ink-900" style={{ borderColor: "rgb(var(--line))" }}>
               <Mail className="h-4 w-4 text-ink-400" />
               <input
                 type="email"
@@ -115,7 +107,7 @@ export default function EmailSignupPage() {
               />
             </div>
 
-            <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition hover:border-gulf-400/50 dark:border-white/10" style={{ borderColor: "rgb(var(--line) / 0.7)" }}>
+            <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition hover:border-gulf-400/50 " style={{ borderColor: "rgb(var(--line))" }}>
               <input
                 type="checkbox"
                 name="weekly"
@@ -142,7 +134,7 @@ export default function EmailSignupPage() {
               <div
                 role="status"
                 className={
-                  "mt-5 rounded-2xl border p-4 text-sm font-medium " +
+ "mt-5 rounded-lg border p-4 text-sm font-medium " +
                   (status.type === "success"
                     ? "border-gulf-500/30 bg-gulf-500/10 text-gulf-800 dark:text-gulf-100"
                     : "border-coral-500/30 bg-coral-500/10 text-coral-500")

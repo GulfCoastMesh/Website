@@ -9,7 +9,7 @@ export function SettingsChangeBanner() {
       <div
         role="note"
         className="mx-auto flex max-w-6xl items-start gap-2.5 rounded-xl border border-sand-400/40 bg-sand-400/10 px-4 py-2.5 text-sm text-ink-700 sm:items-center sm:justify-center sm:text-center dark:text-ink-200"
-        style={{ borderColor: "rgb(var(--line) / 0.5)" }}
+        style={{ borderColor: "rgb(var(--line))" }}
       >
         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-sand-700 sm:mt-0 dark:text-sand-300" aria-hidden />
         <p>

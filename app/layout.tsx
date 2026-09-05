@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
+import { Background } from "@/components/background";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { AnalyticsScript } from "@/components/analytics-script";
@@ -55,8 +56,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6f9fd" },
-    { media: "(prefers-color-scheme: dark)", color: "#03080f" },
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b0f19" },
   ],
 };
 
@@ -88,14 +89,19 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <Script src="/theme-init.js" strategy="beforeInteractive" nonce={nonce} />
       </head>
       <body
-        className={`${sans.variable} ${display.variable} ${mono.variable} bg-canvas relative min-h-screen font-sans text-ink-900 antialiased dark:text-ink-50`}
+        className={`${sans.variable} ${display.variable} ${mono.variable} bg-canvas min-h-screen font-sans antialiased`}
       >
-        <div className="pointer-events-none fixed inset-0 z-0 bg-grid opacity-60 dark:opacity-30" aria-hidden />
-        <div className="pointer-events-none fixed inset-0 z-0 bg-noise" aria-hidden />
+        <Background />
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-ink-900 focus:shadow-lift dark:focus:bg-ink-800 dark:focus:text-white"
+        >
+          Skip to content
+        </a>
         <div className="relative z-10 flex min-h-screen flex-col">
           <SiteHeader />
-          <main className="flex-1 pt-28 sm:pt-32">
-            {children}
+          <main id="main" className="relative flex-1 pt-8 sm:pt-12">
+            <div className="relative">{children}</div>
           </main>
           <SiteFooter />
         </div>

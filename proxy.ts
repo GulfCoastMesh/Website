@@ -37,6 +37,8 @@ function buildCsp(nonce: string): string {
 
   const connectSrc = [
     "connect-src 'self'",
+    "https://analyzer.gulfcoastmesh.org",
+    "wss://analyzer.gulfcoastmesh.org",
     "https://in.getclicky.com",
     "https://lists.gulfcoastmesh.org",
     "https://explorer.gulfcoastmesh.org",

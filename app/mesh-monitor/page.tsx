@@ -54,7 +54,7 @@ export default async function MeshMonitorPage() {
           </div>
         </section>
 
-        <section id="lookup" className="scroll-mt-32 mt-20 border-t pt-16 dark:border-white/10">
+        <section id="lookup" className="scroll-mt-32 mt-20 border-t pt-16 ">
           <h2 className="flex items-center gap-2 font-display text-2xl font-semibold tracking-tight text-ink-900 dark:text-white">
             <Search className="h-6 w-6 text-gulf-600 dark:text-gulf-300" aria-hidden />
             My prefixes
@@ -67,7 +67,7 @@ export default async function MeshMonitorPage() {
           </div>
         </section>
 
-        <section id="duplicates" className="scroll-mt-32 mt-20 border-t pt-16 dark:border-white/10">
+        <section id="duplicates" className="scroll-mt-32 mt-20 border-t pt-16 ">
           <h2 className="flex items-center gap-2 font-display text-2xl font-semibold tracking-tight text-ink-900 dark:text-white">
             <Copy className="h-6 w-6 text-gulf-600 dark:text-gulf-300" aria-hidden />
             Duplicate prefixes
@@ -77,7 +77,7 @@ export default async function MeshMonitorPage() {
           </div>
         </section>
 
-        <section id="reports" className="scroll-mt-32 mt-20 border-t pt-16 dark:border-white/10">
+        <section id="reports" className="scroll-mt-32 mt-20 border-t pt-16 ">
           <h2 className="flex items-center gap-2 font-display text-2xl font-semibold tracking-tight text-ink-900 dark:text-white">
             <Activity className="h-6 w-6 text-gulf-600 dark:text-gulf-300" aria-hidden />
             Network reports
