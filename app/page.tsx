@@ -148,6 +148,21 @@ export default async function HomePage() {
               }
               aspect="aspect-[4/3] sm:aspect-[16/11]"
             />
+            <p className="mt-2.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-1 text-[11px] text-ink-500 dark:text-ink-400">
+              <span className="inline-flex items-center gap-1.5 font-medium">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gulf-400 opacity-75" />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-gulf-500" />
+                </span>
+                Background lines show live mesh traffic
+              </span>
+              <span className="inline-flex items-center gap-2.5 text-[10px] text-ink-400 dark:text-ink-500">
+                <span className="inline-flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-[#0d9488] dark:bg-[#00f5d4]" />Ads</span>
+                <span className="inline-flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-[#2563eb] dark:bg-[#38bdf8]" />Messages</span>
+                <span className="inline-flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-[#7c3aed] dark:bg-[#c084fc]" />Routing</span>
+                <span className="inline-flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-[#d97706] dark:bg-[#fbbf24]" />Control</span>
+              </span>
+            </p>
           </div>
         </div>
       </section>

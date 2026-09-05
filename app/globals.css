@@ -310,6 +310,36 @@
   }
 }
 
+/* ---- Live Mesh Network Background Canvas -------------------------------- */
+.mesh-background {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.mesh-background__canvas,
+.mesh-background__scrim {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.mesh-background__scrim {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+html.dark .mesh-background__scrim {
+  background: rgba(11, 15, 25, 0.25);
+}
+
+@media (prefers-reduced-motion: reduce), print {
+  .mesh-background {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

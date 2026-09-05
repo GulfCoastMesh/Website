@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
+import { Background } from "@/components/background";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { AnalyticsScript } from "@/components/analytics-script";
@@ -90,13 +91,14 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <body
         className={`${sans.variable} ${display.variable} ${mono.variable} bg-canvas min-h-screen font-sans antialiased`}
       >
+        <Background />
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-ink-900 focus:shadow-lift dark:focus:bg-ink-800 dark:focus:text-white"
         >
           Skip to content
         </a>
-        <div className="flex min-h-screen flex-col">
+        <div className="relative z-10 flex min-h-screen flex-col">
           <SiteHeader />
           <main id="main" className="relative flex-1 pt-8 sm:pt-12">
             <div className="relative">{children}</div>
