@@ -102,7 +102,7 @@ export function MeetingsCalendar({ publishedByDateKey }: Props) {
         className="surface mt-10 p-6 sm:p-8"
         aria-label="Meetings calendar (loading)"
       >
-        <div className="h-[420px] animate-pulse rounded-2xl bg-ink-100/40 dark:bg-white/5" />
+        <div className="h-[420px] animate-pulse rounded-lg bg-ink-100/40 dark:bg-white/5" />
       </section>
     );
   }
@@ -154,16 +154,16 @@ function MountedCalendar({ publishedByDateKey }: Props) {
             type="button"
             onClick={goPrev}
             aria-label="Previous month"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border bg-white/70 text-ink-700 transition hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-ink-100 dark:hover:bg-white/10"
-            style={{ borderColor: "rgb(var(--line) / 0.7)" }}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border bg-[rgb(var(--bg-elevated))] text-ink-700 transition hover:bg-[rgb(var(--bg-sunken))] dark:text-ink-100"
+            style={{ borderColor: "rgb(var(--line))" }}
           >
             <ChevronLeft className="h-4 w-4" aria-hidden />
           </button>
           <button
             type="button"
             onClick={goToday}
-            className="inline-flex h-9 items-center rounded-xl border bg-white/70 px-3 text-xs font-semibold text-ink-700 transition hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-ink-100 dark:hover:bg-white/10"
-            style={{ borderColor: "rgb(var(--line) / 0.7)" }}
+            className="inline-flex h-9 items-center rounded-xl border bg-[rgb(var(--bg-elevated))] px-3 text-xs font-semibold text-ink-700 transition hover:bg-[rgb(var(--bg-sunken))] dark:text-ink-100"
+            style={{ borderColor: "rgb(var(--line))" }}
           >
             Today
           </button>
@@ -171,8 +171,8 @@ function MountedCalendar({ publishedByDateKey }: Props) {
             type="button"
             onClick={goNext}
             aria-label="Next month"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border bg-white/70 text-ink-700 transition hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-ink-100 dark:hover:bg-white/10"
-            style={{ borderColor: "rgb(var(--line) / 0.7)" }}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border bg-[rgb(var(--bg-elevated))] text-ink-700 transition hover:bg-[rgb(var(--bg-sunken))] dark:text-ink-100"
+            style={{ borderColor: "rgb(var(--line))" }}
           >
             <ChevronRight className="h-4 w-4" aria-hidden />
           </button>
@@ -224,7 +224,7 @@ function CalendarCell({
     ? "border-gulf-400/40 bg-gulf-500/5 dark:border-gulf-400/30 dark:bg-gulf-500/10"
     : "";
   const inactiveBorder = !isMonday
-    ? "border-ink-200/60 bg-white/40 dark:border-white/10 dark:bg-white/[0.02]"
+    ? "border-[rgb(var(--line))] bg-[rgb(var(--bg-elevated))] dark:bg-white/[0.02]"
     : "";
 
   const inner = (
@@ -267,7 +267,7 @@ function CalendarCell({
         target="_blank"
         rel="noopener noreferrer"
         title={`Recap — ${published.dateLabel}`}
-        className={`${baseClass} ${mondayAccent} ${todayRing} ${mutedText} group cursor-pointer hover:-translate-y-0.5 hover:border-gulf-400/70 hover:bg-gulf-500/10`}
+        className={`${baseClass} ${mondayAccent} ${todayRing} ${mutedText} group cursor-pointer hover:border-gulf-400/70 hover:bg-gulf-500/10`}
       >
         {inner}
         <ArrowUpRight

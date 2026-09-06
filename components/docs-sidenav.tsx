@@ -30,8 +30,8 @@ export function DocsSideNav({
           type="button"
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
-          className="flex w-full items-center justify-between rounded-2xl border bg-white/70 px-4 py-3 text-left text-sm font-semibold text-ink-800 shadow-soft backdrop-blur-xl transition hover:bg-white dark:border-white/10 dark:bg-ink-900/60 dark:text-ink-100 dark:hover:bg-ink-900/80"
-          style={{ borderColor: "rgb(var(--line) / 0.6)" }}
+          className="flex w-full items-center justify-between rounded-lg border bg-[rgb(var(--bg-elevated))] px-4 py-3 text-left text-sm font-semibold text-ink-800 shadow-soft transition hover:bg-[rgb(var(--bg-sunken))] dark:text-ink-100"
+          style={{ borderColor: "rgb(var(--line))" }}
         >
           <span className="inline-flex items-center gap-2">
             <BookOpen className="h-4 w-4 text-gulf-600 dark:text-gulf-300" aria-hidden />
@@ -43,8 +43,8 @@ export function DocsSideNav({
           />
         </button>
         {open ? (
-          <div className="mt-3 rounded-2xl border bg-white/80 p-4 shadow-soft backdrop-blur-xl dark:border-white/10 dark:bg-ink-900/60"
-               style={{ borderColor: "rgb(var(--line) / 0.6)" }}>
+          <div className="mt-3 rounded-lg border bg-[rgb(var(--bg-elevated))] p-4 shadow-soft"
+               style={{ borderColor: "rgb(var(--line))" }}>
             <NavList pathname={pathname} home={home} sections={sections} onNavigate={closeMobile} />
           </div>
         ) : null}
@@ -53,8 +53,8 @@ export function DocsSideNav({
       {/* Desktop sticky sidebar */}
       <aside className="hidden lg:block">
         <div className="sticky top-28">
-          <div className="rounded-2xl border bg-white/70 p-5 shadow-soft backdrop-blur-xl dark:border-white/10 dark:bg-ink-900/60"
-               style={{ borderColor: "rgb(var(--line) / 0.6)" }}>
+          <div className="rounded-lg border bg-[rgb(var(--bg-elevated))] p-5 shadow-soft"
+               style={{ borderColor: "rgb(var(--line))" }}>
             <p className="mb-3 inline-flex items-center gap-2 font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-gulf-700 dark:text-gulf-300">
               <BookOpen className="h-3.5 w-3.5" aria-hidden />
               Documentation
@@ -137,7 +137,7 @@ function NavLink({
         "group flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition " +
         (active
           ? "bg-gulf-500/10 font-semibold text-gulf-700 ring-1 ring-gulf-500/30 dark:bg-gulf-400/10 dark:text-gulf-200 dark:ring-gulf-400/30"
-          : "text-ink-700 hover:bg-ink-100 hover:text-ink-900 dark:text-ink-200 dark:hover:bg-white/5 dark:hover:text-white")
+          : "text-ink-700 hover:bg-ink-100 hover:text-ink-900 dark:text-ink-200 dark:hover:text-white")
       }
     >
       {icon ? <span className="text-gulf-600 dark:text-gulf-300">{icon}</span> : null}

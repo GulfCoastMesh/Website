@@ -42,8 +42,8 @@ export function MeshMonitorSectionNav() {
   return (
     <nav
       aria-label="Mesh monitor sections"
-      className="sticky top-[5.5rem] z-40 -mx-4 mb-10 border-b bg-[rgb(var(--bg)/0.92)] px-4 py-3 backdrop-blur-xl sm:-mx-6 sm:px-6 dark:border-white/10"
-      style={{ borderColor: "rgb(var(--line) / 0.7)" }}
+      className="sticky top-[5.5rem] z-40 -mx-4 mb-10 border-b bg-[rgb(var(--bg)/0.92)] px-4 py-3 sm:-mx-6 sm:px-6"
+      style={{ borderColor: "rgb(var(--line))" }}
     >
       <ul className="mx-auto flex max-w-3xl flex-wrap justify-center gap-2">
         {SECTIONS.map((s) => (
@@ -54,8 +54,8 @@ export function MeshMonitorSectionNav() {
               className={
                 "inline-flex rounded-full px-4 py-2 text-sm font-semibold transition " +
                 (active === s.id
-                  ? "bg-gradient-to-r from-gulf-400 via-gulf-500 to-gulf-600 text-ink-950 shadow-glow"
-                  : "text-ink-700 hover:bg-ink-100 dark:text-ink-200 dark:hover:bg-white/5")
+                  ? "bg-gulf-700 text-white dark:bg-gulf-500 dark:text-ink-950"
+                  : "text-ink-700 hover:bg-ink-100 dark:text-ink-200")
               }
             >
               {s.label}

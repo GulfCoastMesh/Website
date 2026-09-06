@@ -30,7 +30,7 @@ type LookupResponse = {
 type FormStatus = { type: "success" | "error"; text: string } | null;
 
 const inputWrap =
-  "mt-2 flex items-center gap-2 rounded-2xl border bg-white px-3 py-1 focus-within:ring-2 focus-within:ring-gulf-400 dark:border-white/10 dark:bg-ink-900";
+ "mt-2 flex items-center gap-2 rounded-lg border bg-white px-3 py-1 focus-within:ring-2 focus-within:ring-gulf-400 dark:bg-ink-900";
 const inputClass =
   "w-full bg-transparent py-3 text-sm text-ink-900 outline-none placeholder:text-ink-400 dark:text-white";
 const labelClass = "block font-display text-sm font-semibold text-ink-900 dark:text-white";
@@ -103,7 +103,6 @@ export function MeshMonitorLookupSection() {
 
   return (
     <div className="surface-strong relative overflow-hidden p-6 sm:p-8">
-      <div className="pointer-events-none absolute -left-12 -bottom-12 h-44 w-44 rounded-full bg-gulf-400/15 blur-3xl" />
       <h3 className="relative font-display text-lg font-semibold text-ink-900 dark:text-white">
         My prefixes
       </h3>
@@ -116,7 +115,7 @@ export function MeshMonitorLookupSection() {
           <label htmlFor="lookup_email" className={labelClass}>
             Email
           </label>
-          <div className={inputWrap} style={{ borderColor: "rgb(var(--line) / 0.7)" }}>
+          <div className={inputWrap} style={{ borderColor: "rgb(var(--line))" }}>
             <input
               id="lookup_email"
               name="lookup_email"
@@ -133,7 +132,7 @@ export function MeshMonitorLookupSection() {
           <div
             role="status"
             className={
-              "rounded-2xl border p-4 text-sm font-medium " +
+ "rounded-lg border p-4 text-sm font-medium " +
               (status.type === "success"
                 ? "border-gulf-500/30 bg-gulf-500/10 text-gulf-800 dark:text-gulf-100"
                 : "border-coral-500/30 bg-coral-500/10 text-coral-700 dark:text-coral-200")
@@ -168,8 +167,8 @@ export function MeshMonitorLookupSection() {
             {results.reservations.map((r) => (
               <li
                 key={`${r.prefix}-${r.status}`}
-                className="rounded-2xl border p-4 dark:border-white/10"
-                style={{ borderColor: "rgb(var(--line) / 0.7)" }}
+                className="rounded-lg border p-4"
+                style={{ borderColor: "rgb(var(--line))" }}
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-3">

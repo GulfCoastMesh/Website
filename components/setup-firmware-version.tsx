@@ -24,7 +24,7 @@ export function FirmwareVersionPicker({
   onSelectedVersionChange,
 }: FirmwareVersionPickerProps) {
   const inputClass =
-    "w-full rounded-xl border bg-white/80 px-3 py-2.5 text-sm text-ink-900 outline-none transition focus:border-gulf-400 focus:ring-2 focus:ring-gulf-400/40 dark:bg-ink-900/60 dark:text-white";
+ "w-full rounded-xl border bg-[rgb(var(--bg-elevated))] px-3 py-2.5 text-sm text-ink-900 outline-none transition focus:border-gulf-400 focus:ring-2 focus:ring-gulf-400/40 dark:text-white";
 
   return (
     <div className="surface p-4 sm:p-5">
@@ -47,7 +47,7 @@ export function FirmwareVersionPicker({
 
       {!loading && versions.length > 0 ? (
         <div className="mt-4 space-y-3">
-          <label className="flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2.5 transition hover:border-gulf-400/40 dark:border-white/10">
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2.5 transition hover:border-gulf-400/40 ">
             <input
               type="radio"
               name="firmware-version-mode"
@@ -63,7 +63,7 @@ export function FirmwareVersionPicker({
             </span>
           </label>
 
-          <label className="flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2.5 transition hover:border-gulf-400/40 dark:border-white/10">
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2.5 transition hover:border-gulf-400/40 ">
             <input
               type="radio"
               name="firmware-version-mode"
@@ -81,7 +81,7 @@ export function FirmwareVersionPicker({
                   onSelectedVersionChange(e.target.value);
                 }}
                 className={`mt-2 ${inputClass}`}
-                style={{ borderColor: "rgb(var(--line) / 0.7)" }}
+                style={{ borderColor: "rgb(var(--line))" }}
               >
                 {versions.map((version) => (
                   <option key={version} value={version}>

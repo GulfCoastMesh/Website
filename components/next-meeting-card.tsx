@@ -165,10 +165,9 @@ function Shell({
 }) {
   return (
     <section className="surface relative mt-12 overflow-hidden p-6 sm:p-8">
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-gulf-400/15 via-transparent to-sand-400/10" />
       <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-4">
-          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gulf-500/15 text-gulf-700 dark:text-gulf-300">
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-gulf-500/15 text-gulf-700 dark:text-gulf-300">
             <CalendarClock className="h-6 w-6" aria-hidden />
           </span>
           <div className="min-w-0">

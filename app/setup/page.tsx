@@ -17,7 +17,6 @@ import {
   Maximize2,
   Terminal as TerminalIcon,
   X,
-  Sparkles,
   Copy,
   Check,
   ArrowUpRight,
@@ -199,7 +198,6 @@ function SetupWizard() {
   const [showTerminal, setShowTerminal] = useState(false);
   const [terminalLogs, setTerminalLogs] = useState<string[]>([]);
   const terminalLogsRef = useRef<string[]>([]);
-  const pendingTerminalLogsRef = useRef<string[]>([]);
   const terminalFlushScheduledRef = useRef<boolean>(false);
   const terminalEndRef = useRef<HTMLDivElement>(null);
   const showTerminalRef = useRef(false);
@@ -265,10 +263,14 @@ function SetupWizard() {
 
   useEffect(() => {
     if (step === 'client_select_device' && clientFirmware.versions.length === 0 && !clientFirmware.loading) {
-      void loadFirmwareVersions('client');
+      queueMicrotask(() => {
+        void loadFirmwareVersions('client');
+      });
     }
     if (step === 'repeater_select_device' && repeaterFirmware.versions.length === 0 && !repeaterFirmware.loading) {
-      void loadFirmwareVersions('repeater');
+      queueMicrotask(() => {
+        void loadFirmwareVersions('repeater');
+      });
     }
   }, [step, clientFirmware.loading, clientFirmware.versions.length, repeaterFirmware.loading, repeaterFirmware.versions.length]);
 
@@ -1049,7 +1051,7 @@ function SetupWizard() {
 
     return (
       <div className="mx-auto max-w-md space-y-4 text-left">
-        <div className="rounded-2xl border bg-white/60 p-4 dark:bg-white/5" style={{ borderColor: 'rgb(var(--line) / 0.7)' }}>
+        <div className="rounded-lg border bg-[rgb(var(--bg-elevated))] p-4" style={{ borderColor: 'rgb(var(--line))' }}>
           <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-500 dark:text-ink-400">
             DFU notes
           </p>
@@ -1061,7 +1063,7 @@ function SetupWizard() {
           </p>
         </div>
         {selectedSetupDevice.eraseAsset ? (
-          <label className="flex items-start gap-3 rounded-2xl border bg-white/60 p-4 dark:bg-white/5" style={{ borderColor: 'rgb(var(--line) / 0.7)' }}>
+          <label className="flex items-start gap-3 rounded-lg border bg-[rgb(var(--bg-elevated))] p-4" style={{ borderColor: 'rgb(var(--line))' }}>
             <input
               type="checkbox"
               className="mt-1"
@@ -1489,7 +1491,7 @@ function SetupWizard() {
 
     if (serialSupport === 'insecure') {
       return (
-        <div className="mb-6 flex items-start gap-3 rounded-2xl border border-sand-400/40 bg-sand-400/10 p-4 text-left">
+        <div className="mb-6 flex items-start gap-3 rounded-lg border border-sand-400/40 bg-sand-400/10 p-4 text-left">
           <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-sand-700 dark:text-sand-300" aria-hidden />
           <div>
             <h3 className="font-display text-sm font-semibold text-ink-900 dark:text-white">Secure connection required</h3>
@@ -1562,7 +1564,7 @@ function SetupWizard() {
     const { title, body, suggestion } = messages[browserKind];
 
     return (
-      <div className="mb-6 rounded-2xl border border-coral-500/40 bg-coral-500/10 p-5 text-left">
+      <div className="mb-6 rounded-lg border border-coral-500/40 bg-coral-500/10 p-5 text-left">
         <div className="flex items-start gap-3">
           <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-coral-500" aria-hidden />
           <div className="min-w-0 flex-1 space-y-3">
@@ -1620,14 +1622,14 @@ function SetupWizard() {
 
   const renderTerminal = () => (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-950/60 backdrop-blur-sm transition-opacity ${
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-950/60 transition-opacity ${
         showTerminal ? 'opacity-100' : 'pointer-events-none opacity-0'
       }`}
       role="dialog"
       aria-modal="true"
       aria-label="Flash terminal"
     >
-      <div className="flex h-[65vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-white/10 bg-ink-950 shadow-glow">
+      <div className="flex h-[65vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl border border-white/10 bg-ink-950 shadow-lift">
         <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
           <div className="flex items-center gap-2 text-ink-200">
             <TerminalIcon className="h-4 w-4" aria-hidden />
@@ -1683,42 +1685,20 @@ function SetupWizard() {
   const renderIntro = () => (
     <div className="space-y-8">
       <div className="space-y-3 text-center">
-        <span className="eyebrow mx-auto">
-          <Sparkles className="h-3.5 w-3.5" aria-hidden />
-          Setup wizard
-        </span>
         <h1 className="font-display text-3xl font-semibold tracking-tight text-balance text-ink-900 sm:text-4xl dark:text-white">
-          Get a node on the <span className="gradient-text">Gulf Coast mesh</span>.
+          Get a node on the Gulf Coast mesh.
         </h1>
         <p className="mx-auto max-w-md text-pretty text-sm leading-relaxed text-ink-600 dark:text-ink-300">
           Plug in over USB, flash MeshCore, and join the network — right from your browser. Pick what you&apos;re building today.
         </p>
       </div>
-      {(browserKind === 'firefox' || browserKind === 'safari' || browserKind === 'ios') && (
-        <div
-          role="note"
-          className="mx-auto flex max-w-xl items-start gap-3 rounded-2xl border border-sand-400/40 bg-sand-400/10 p-4 text-left"
-        >
-          <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-sand-700 dark:text-sand-300" aria-hidden />
-          <div>
-            <h3 className="font-display text-sm font-semibold text-ink-900 dark:text-white">
-              Chromium-based browser required
-            </h3>
-            <p className="mt-1 text-xs leading-relaxed text-ink-600 dark:text-ink-300">
-              The setup wizard uses the Web Serial API to talk to your radio over USB, which only works in
-              Chromium-based browsers — Chrome, Edge, Brave, Arc, Vivaldi, or Opera. Firefox and Safari (including
-              all iOS browsers) can&apos;t flash from the web yet.
-            </p>
-          </div>
-        </div>
-      )}
       <div className="grid gap-4 md:grid-cols-2">
         <button
           type="button"
           onClick={() => goTo('client_explain')}
           className="tile tile-accent group flex h-full flex-col items-start text-left"
         >
-          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-gulf-500/15 text-gulf-700 dark:text-gulf-300">
+          <span className="grid h-11 w-11 place-items-center rounded-lg bg-gulf-500/15 text-gulf-700 dark:text-gulf-300">
             <Smartphone className="h-5 w-5" aria-hidden />
           </span>
           <h3 className="mt-5 font-display text-lg font-semibold text-ink-900 dark:text-white">Set up a client</h3>
@@ -1731,7 +1711,7 @@ function SetupWizard() {
           onClick={() => goTo('repeater_explain')}
           className="tile tile-accent group flex h-full flex-col items-start text-left"
         >
-          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-sand-400/20 text-sand-700 dark:text-sand-300">
+          <span className="grid h-11 w-11 place-items-center rounded-lg bg-sand-400/20 text-sand-700 dark:text-sand-300">
             <Wifi className="h-5 w-5" aria-hidden />
           </span>
           <h3 className="mt-5 font-display text-lg font-semibold text-ink-900 dark:text-white">Stand up a repeater</h3>
@@ -1747,7 +1727,6 @@ function SetupWizard() {
     <div className="space-y-6">
       <BackButton to="intro" />
       <div className="surface-strong relative overflow-hidden p-6 sm:p-8">
-        <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-gulf-400/15 blur-3xl" />
         <span className="eyebrow">
           <Smartphone className="h-3.5 w-3.5" aria-hidden />
           MeshCore client
@@ -1782,21 +1761,21 @@ function SetupWizard() {
               onClick={() => selectDevice(d.id)}
               aria-pressed={isSelected}
               className={
-                'group relative flex flex-col items-center gap-2 rounded-2xl border p-5 text-center transition disabled:cursor-not-allowed disabled:opacity-45 ' +
+                'group relative flex flex-col items-center gap-2 rounded-lg border p-5 text-center transition disabled:cursor-not-allowed disabled:opacity-45 ' +
                 (isSelected
                   ? 'border-gulf-500/60 bg-gulf-500/10 shadow-[0_0_0_1px_rgba(45,209,189,0.3)_inset]'
-                  : 'bg-white/60 hover:-translate-y-0.5 hover:border-gulf-400/50 dark:bg-white/5 ')
+                  : 'bg-[rgb(var(--bg-elevated))] hover:border-gulf-400/50 ')
               }
-              style={!isSelected ? { borderColor: 'rgb(var(--line) / 0.7)' } : undefined}
+              style={!isSelected ? { borderColor: 'rgb(var(--line))' } : undefined}
             >
               {!d.supported && (
-                <span className="absolute right-2 top-2 rounded-full border bg-white/70 px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.18em] text-ink-500 dark:border-white/10 dark:bg-white/5 dark:text-ink-400" style={{ borderColor: 'rgb(var(--line) / 0.6)' }}>
+                <span className="absolute right-2 top-2 rounded-full border bg-[rgb(var(--bg-elevated))] px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.18em] text-ink-500 dark:text-ink-400" style={{ borderColor: 'rgb(var(--line))' }}>
                   Soon™
                 </span>
               )}
               <span className={
                 'grid h-10 w-10 place-items-center rounded-xl ' +
-                (isSelected ? 'bg-gulf-500/20 text-gulf-700 dark:text-gulf-200' : 'bg-ink-700/5 text-ink-600 dark:bg-white/5 dark:text-ink-300')
+                (isSelected ? 'bg-gulf-500/20 text-gulf-700 dark:text-gulf-200' : 'bg-ink-700/5 text-ink-600 dark:bg-[rgb(var(--bg-elevated))] dark:text-ink-300')
               }>
                 <Cpu className="h-5 w-5" strokeWidth={1.7} aria-hidden />
               </span>
@@ -1823,7 +1802,7 @@ function SetupWizard() {
     <div className="space-y-6">
       <BackButton to="client_select_device" />
       <div className="text-center">
-        <span className="grid h-12 w-12 place-items-center rounded-2xl bg-gulf-500/15 text-gulf-700 mx-auto dark:text-gulf-300">
+        <span className="grid h-12 w-12 place-items-center rounded-lg bg-gulf-500/15 text-gulf-700 mx-auto dark:text-gulf-300">
           <Usb className="h-6 w-6" aria-hidden />
         </span>
         <h2 className="mt-5 font-display text-2xl font-semibold tracking-tight text-ink-900 dark:text-white">
@@ -1857,8 +1836,8 @@ function SetupWizard() {
                 type="button"
                 disabled={isProcessing}
                 onClick={handleSendTestPacket}
-                className="grid h-11 w-11 place-items-center rounded-2xl border bg-sand-400/10 text-sand-700 transition hover:bg-sand-400/20 disabled:opacity-50 dark:text-sand-300"
-                style={{ borderColor: 'rgb(var(--line) / 0.7)' }}
+                className="grid h-11 w-11 place-items-center rounded-lg border bg-sand-400/10 text-sand-700 transition hover:bg-sand-400/20 disabled:opacity-50 dark:text-sand-300"
+                style={{ borderColor: 'rgb(var(--line))' }}
                 aria-label="Send test packet"
               >
                 <Zap className="h-5 w-5" aria-hidden />
@@ -2008,7 +1987,6 @@ function SetupWizard() {
     <div className="space-y-6">
       <BackButton to="intro" />
       <div className="surface-strong relative overflow-hidden p-6 sm:p-8">
-        <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-sand-400/20 blur-3xl" />
         <span className="eyebrow">
           <Wifi className="h-3.5 w-3.5" aria-hidden />
           MeshCore repeater
@@ -2043,21 +2021,21 @@ function SetupWizard() {
               onClick={() => selectDevice(d.id)}
               aria-pressed={isSelected}
               className={
-                'group relative flex flex-col items-center gap-2 rounded-2xl border p-5 text-center transition disabled:cursor-not-allowed disabled:opacity-45 ' +
+                'group relative flex flex-col items-center gap-2 rounded-lg border p-5 text-center transition disabled:cursor-not-allowed disabled:opacity-45 ' +
                 (isSelected
                   ? 'border-sand-400/60 bg-sand-400/10 shadow-[0_0_0_1px_rgba(249,162,40,0.3)_inset]'
-                  : 'bg-white/60 hover:-translate-y-0.5 hover:border-sand-400/50 dark:bg-white/5 ')
+                  : 'bg-[rgb(var(--bg-elevated))] hover:border-sand-400/50 ')
               }
-              style={!isSelected ? { borderColor: 'rgb(var(--line) / 0.7)' } : undefined}
+              style={!isSelected ? { borderColor: 'rgb(var(--line))' } : undefined}
             >
               {!d.supported && (
-                <span className="absolute right-2 top-2 rounded-full border bg-white/70 px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.18em] text-ink-500 dark:border-white/10 dark:bg-white/5 dark:text-ink-400" style={{ borderColor: 'rgb(var(--line) / 0.6)' }}>
+                <span className="absolute right-2 top-2 rounded-full border bg-[rgb(var(--bg-elevated))] px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.18em] text-ink-500 dark:text-ink-400" style={{ borderColor: 'rgb(var(--line))' }}>
                   Soon™
                 </span>
               )}
               <span className={
                 'grid h-10 w-10 place-items-center rounded-xl ' +
-                (isSelected ? 'bg-sand-400/25 text-sand-700 dark:text-sand-200' : 'bg-ink-700/5 text-ink-600 dark:bg-white/5 dark:text-ink-300')
+                (isSelected ? 'bg-sand-400/25 text-sand-700 dark:text-sand-200' : 'bg-ink-700/5 text-ink-600 dark:bg-[rgb(var(--bg-elevated))] dark:text-ink-300')
               }>
                 <Cpu className="h-5 w-5" strokeWidth={1.7} aria-hidden />
               </span>
@@ -2084,7 +2062,7 @@ function SetupWizard() {
     <div className="space-y-6">
       <BackButton to="repeater_select_device" />
       <div className="text-center">
-        <span className="grid h-12 w-12 place-items-center rounded-2xl bg-sand-400/20 text-sand-700 mx-auto dark:text-sand-300">
+        <span className="grid h-12 w-12 place-items-center rounded-lg bg-sand-400/20 text-sand-700 mx-auto dark:text-sand-300">
           <Usb className="h-6 w-6" aria-hidden />
         </span>
         <h2 className="mt-5 font-display text-2xl font-semibold tracking-tight text-ink-900 dark:text-white">
@@ -2120,8 +2098,8 @@ function SetupWizard() {
                 type="button"
                 disabled={isProcessing}
                 onClick={handleSendTestPacket}
-                className="grid h-11 w-11 place-items-center rounded-2xl border bg-sand-400/10 text-sand-700 transition hover:bg-sand-400/20 disabled:opacity-50 dark:text-sand-300"
-                style={{ borderColor: 'rgb(var(--line) / 0.7)' }}
+                className="grid h-11 w-11 place-items-center rounded-lg border bg-sand-400/10 text-sand-700 transition hover:bg-sand-400/20 disabled:opacity-50 dark:text-sand-300"
+                style={{ borderColor: 'rgb(var(--line))' }}
                 aria-label="Send test packet"
               >
                 <Zap className="h-5 w-5" aria-hidden />
@@ -2406,8 +2384,8 @@ function SetupWizard() {
         role="button"
         tabIndex={0}
         aria-label="Select repeater location on real map"
-        className={`${expanded ? 'h-[70vh]' : 'h-64'} relative w-full overflow-hidden rounded-2xl border bg-ink-200 ${isMapDragging ? 'cursor-grabbing' : 'cursor-grab'} touch-none select-none overscroll-contain focus:outline-none focus:ring-2 focus:ring-gulf-400 dark:bg-ink-900`}
-        style={{ borderColor: 'rgb(var(--line) / 0.7)', userSelect: 'none', WebkitUserSelect: 'none' }}
+        className={`${expanded ? 'h-[70vh]' : 'h-64'} relative w-full overflow-hidden rounded-lg border bg-ink-200 ${isMapDragging ? 'cursor-grabbing' : 'cursor-grab'} touch-none select-none overscroll-contain focus:outline-none focus:ring-2 focus:ring-gulf-400 dark:bg-ink-900`}
+        style={{ borderColor: 'rgb(var(--line))', userSelect: 'none', WebkitUserSelect: 'none' }}
       >
         {getMapTiles(expanded).map((tile) => (
           // eslint-disable-next-line @next/next/no-img-element
@@ -2420,8 +2398,7 @@ function SetupWizard() {
             style={{ left: `calc(50% + ${tile.left}px)`, top: `calc(50% + ${tile.top}px)` }}
           />
         ))}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent to-ink-950/10" />
-        <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-white/95 px-2 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.18em] text-ink-700 shadow-sm dark:bg-ink-900/90 dark:text-ink-100">
+        <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-[rgb(var(--bg-elevated))] px-2 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.18em] text-ink-700 shadow-sm dark:text-ink-100">
           OpenStreetMap
         </span>
         {!expanded && (
@@ -2432,18 +2409,18 @@ function SetupWizard() {
               if (repeaterConfig.locationSet) setMapCenter({ lat: repeaterConfig.lat, lon: repeaterConfig.lon });
               setShowMapModal(true);
             }}
-            className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full bg-white/95 text-gulf-700 shadow-sm transition hover:bg-white dark:bg-ink-900/90 dark:text-gulf-300"
+            className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full bg-[rgb(var(--bg-elevated))] text-gulf-700 shadow-sm transition hover:bg-[rgb(var(--bg-sunken))] dark:text-gulf-300"
             aria-label="Maximize map"
           >
             <Maximize2 className="h-4 w-4" aria-hidden />
           </button>
         )}
-        <div className="absolute right-3 top-14 flex flex-col overflow-hidden rounded-xl bg-white/95 shadow-sm dark:bg-ink-900/90">
+        <div className="absolute right-3 top-14 flex flex-col overflow-hidden rounded-xl bg-[rgb(var(--bg-elevated))] shadow-sm">
           <button
             type="button"
             onPointerDown={(e) => e.stopPropagation()}
             onClick={() => setMapZoom((zoom) => clampMapZoom(zoom + 1))}
-            className="px-3 py-2 font-mono text-sm font-semibold text-ink-800 transition hover:bg-ink-100 dark:text-ink-100 dark:hover:bg-white/5"
+            className="px-3 py-2 font-mono text-sm font-semibold text-ink-800 transition hover:bg-ink-100 dark:text-ink-100"
             aria-label="Zoom in"
           >
             +
@@ -2452,13 +2429,13 @@ function SetupWizard() {
             type="button"
             onPointerDown={(e) => e.stopPropagation()}
             onClick={() => setMapZoom((zoom) => clampMapZoom(zoom - 1))}
-            className="border-t border-ink-200/60 px-3 py-2 font-mono text-sm font-semibold text-ink-800 transition hover:bg-ink-100 dark:border-white/10 dark:text-ink-100 dark:hover:bg-white/5"
+            className="border-t border-[rgb(var(--line))] px-3 py-2 font-mono text-sm font-semibold text-ink-800 transition hover:bg-ink-100 dark:text-ink-100"
             aria-label="Zoom out"
           >
             −
           </button>
         </div>
-        <span className="pointer-events-none absolute bottom-3 right-3 rounded-full bg-white/95 px-2 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.18em] text-ink-600 shadow-sm dark:bg-ink-900/90 dark:text-ink-300">
+        <span className="pointer-events-none absolute bottom-3 right-3 rounded-full bg-[rgb(var(--bg-elevated))] px-2 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.18em] text-ink-600 shadow-sm dark:text-ink-300">
           Drag to pan · scroll or +/− to zoom · click to place
         </span>
         {repeaterConfig.locationSet && (
@@ -2491,7 +2468,7 @@ function SetupWizard() {
         </div>
         <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-ink-200/60 dark:bg-white/10">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-gulf-400 to-gulf-600 transition-all duration-300"
+            className="h-full rounded-full bg-gulf-600 transition-all duration-300 dark:bg-gulf-400"
             style={{ width: `${(settingsProgress.current / settingsProgress.total) * 100}%` }}
           />
         </div>
@@ -2526,8 +2503,8 @@ function SetupWizard() {
 
   const renderRepeaterConfig = () => {
     const inputClass =
-      'w-full rounded-xl border bg-white/80 px-3 py-3 text-sm text-ink-900 placeholder:text-ink-400 outline-none transition focus:border-gulf-400 focus:ring-2 focus:ring-gulf-400/40 dark:bg-ink-900/60 dark:text-white dark:placeholder:text-ink-500';
-    const inputBorder = { borderColor: 'rgb(var(--line) / 0.7)' };
+      'w-full rounded-xl border bg-[rgb(var(--bg-elevated))] px-3 py-3 text-sm text-ink-900 placeholder:text-ink-400 outline-none transition focus:border-gulf-400 focus:ring-2 focus:ring-gulf-400/40 dark:text-white dark:placeholder:text-ink-500';
+    const inputBorder = { borderColor: 'rgb(var(--line))' };
     return (
       <div className="space-y-5">
         <div className="text-center">
@@ -2607,8 +2584,8 @@ function SetupWizard() {
         />
 
         <div
-          className="rounded-xl border bg-white/60 px-3 py-2.5 dark:bg-white/5"
-          style={{ borderColor: "rgb(var(--line) / 0.7)" }}
+          className="rounded-xl border bg-[rgb(var(--bg-elevated))] px-3 py-2.5"
+          style={{ borderColor: "rgb(var(--line))" }}
         >
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
             <p className="text-[11px] leading-relaxed text-ink-600 dark:text-ink-300">
@@ -2620,7 +2597,7 @@ function SetupWizard() {
               <select
                 value={repeaterConfig.codingRate}
                 onChange={(e) => setRepeaterConfig({ ...repeaterConfig, codingRate: e.target.value })}
-                className="rounded-lg border bg-white/80 px-2 py-1 text-xs font-medium text-ink-900 outline-none transition focus:border-gulf-400 focus:ring-2 focus:ring-gulf-400/40 dark:bg-ink-900/60 dark:text-white"
+                className="rounded-lg border bg-[rgb(var(--bg-elevated))] px-2 py-1 text-xs font-medium text-ink-900 outline-none transition focus:border-gulf-400 focus:ring-2 focus:ring-gulf-400/40 dark:text-white"
                 style={inputBorder}
               >
                 {[5, 6, 7, 8].map((rate) => (
@@ -2664,7 +2641,7 @@ function SetupWizard() {
 
   const renderRepeaterReady = () => (
     <div className="space-y-6 py-6 text-center">
-      <div className="mx-auto grid h-24 w-24 place-items-center rounded-full bg-gradient-to-br from-gulf-400 via-gulf-500 to-sand-400 text-ink-950 shadow-glow">
+      <div className="mx-auto grid h-24 w-24 place-items-center rounded-full bg-gulf-700 text-white dark:bg-gulf-500 dark:text-ink-950">
         <Wifi className="h-12 w-12" aria-hidden />
       </div>
       <h2 className="font-display text-3xl font-semibold tracking-tight text-ink-900 dark:text-white">
@@ -2750,19 +2727,18 @@ function SetupWizard() {
   };
 
   const inputClass =
-    'w-full rounded-xl border bg-white/80 px-3 py-3 text-sm text-ink-900 placeholder:text-ink-400 outline-none transition focus:border-gulf-400 focus:ring-2 focus:ring-gulf-400/40 dark:bg-ink-900/60 dark:text-white dark:placeholder:text-ink-500';
+    'w-full rounded-xl border bg-[rgb(var(--bg-elevated))] px-3 py-3 text-sm text-ink-900 placeholder:text-ink-400 outline-none transition focus:border-gulf-400 focus:ring-2 focus:ring-gulf-400/40 dark:text-white dark:placeholder:text-ink-500';
 
   return (
     <div className="container pb-24">
       <div className="mx-auto w-full max-w-2xl">
         <div className="surface-strong relative overflow-hidden">
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gulf-400/60 to-transparent" />
           <div className="h-1.5 w-full bg-ink-100/70 dark:bg-white/5">
             <div
               className={`h-full transition-all duration-700 ease-in-out ${
                 step.startsWith('repeater')
-                  ? 'bg-gradient-to-r from-sand-400 to-sand-600'
-                  : 'bg-gradient-to-r from-gulf-400 to-gulf-600'
+                  ? 'bg-sand-500'
+                  : 'bg-gulf-600 dark:bg-gulf-400'
               }`}
               style={{ width: `${getProgress()}%` }}
             />
@@ -2782,7 +2758,7 @@ function SetupWizard() {
       {renderTerminal()}
 
       {showMapModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/60 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Set repeater coordinates">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/60 p-4" role="dialog" aria-modal="true" aria-label="Set repeater coordinates">
           <div className="surface-strong flex h-full max-h-[92vh] w-full max-w-6xl flex-col p-5">
             <div className="mb-4 flex items-center justify-between gap-4">
               <div>
@@ -2800,8 +2776,8 @@ function SetupWizard() {
               <button
                 type="button"
                 onClick={() => setShowMapModal(false)}
-                className="grid h-9 w-9 place-items-center rounded-full border bg-white/70 text-ink-600 transition hover:bg-white hover:text-ink-900 dark:border-white/10 dark:bg-white/5 dark:text-ink-300 dark:hover:bg-white/10"
-                style={{ borderColor: 'rgb(var(--line) / 0.7)' }}
+                className="grid h-9 w-9 place-items-center rounded-full border bg-[rgb(var(--bg-elevated))] text-ink-600 transition hover:bg-[rgb(var(--bg-sunken))] hover:text-ink-900 dark:text-ink-300"
+                style={{ borderColor: 'rgb(var(--line))' }}
                 aria-label="Close map"
               >
                 <X className="h-5 w-5" />
@@ -2817,7 +2793,7 @@ function SetupWizard() {
                   value={repeaterConfig.lat.toFixed(6)}
                   onChange={(e) => handleCoordinateChange('lat', e.target.value)}
                   className={`mt-1 ${inputClass}`}
-                  style={{ borderColor: 'rgb(var(--line) / 0.7)' }}
+                  style={{ borderColor: 'rgb(var(--line))' }}
                 />
               </label>
               <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-500 dark:text-ink-400">
@@ -2828,7 +2804,7 @@ function SetupWizard() {
                   value={repeaterConfig.lon.toFixed(6)}
                   onChange={(e) => handleCoordinateChange('lon', e.target.value)}
                   className={`mt-1 ${inputClass}`}
-                  style={{ borderColor: 'rgb(var(--line) / 0.7)' }}
+                  style={{ borderColor: 'rgb(var(--line))' }}
                 />
               </label>
               <button
