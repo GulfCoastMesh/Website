@@ -4,6 +4,8 @@ export type Partner = {
   logo: string;
   logoWidth: number;
   logoHeight: number;
+  cardClassName?: string;
+  logoClassName?: string;
 };
 
 export const partners: Partner[] = [
@@ -20,5 +22,15 @@ export const partners: Partner[] = [
     logo: "/supporters/pmefi.jpg",
     logoWidth: 285,
     logoHeight: 124,
+  },
+  {
+    name: "GrumpyMesh",
+    href: "https://www.grumpymesh.com/",
+    // Official logo from https://www.grumpymesh.com/Media/grumpymesh-logo.png
+    logo: "/supporters/grumpymesh.png",
+    logoWidth: 625,
+    logoHeight: 205,
+    cardClassName: "bg-black",
+    logoClassName: "h-8 w-auto",
   },
 ];
