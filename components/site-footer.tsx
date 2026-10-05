@@ -92,14 +92,14 @@ export function SiteFooter() {
                   href={partner.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="surface inline-flex items-center px-4 py-3 transition hover:-translate-y-0.5"
+                  className={`surface inline-flex items-center px-4 py-3 transition hover:-translate-y-0.5 ${partner.cardClassName ?? ""}`}
                 >
                   <Image
                     src={partner.logo}
                     alt={partner.name}
                     width={partner.logoWidth}
                     height={partner.logoHeight}
-                    className="h-8 w-auto dark:brightness-0 dark:invert"
+                    className={partner.logoClassName ?? "h-8 w-auto dark:brightness-0 dark:invert"}
                   />
                 </a>
               ))}
