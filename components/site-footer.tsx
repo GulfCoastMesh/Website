@@ -117,20 +117,22 @@ export function SiteFooter() {
             <Link href="/emailsignup" className="hover:text-ink-900 dark:hover:text-white">
               Newsletter
             </Link>
-            <Link href="/docs" className="hover:text-ink-900 dark:hover:text-white">
-              Docs
-            </Link>
             <a
               href="https://docs.gulfcoastmesh.org"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-ink-900 dark:hover:text-white"
             >
-              MkDocs site
+              Docs
             </a>
-            <Link href="/docs/transparency" className="hover:text-ink-900 dark:hover:text-white">
+            <a
+              href="https://docs.gulfcoastmesh.org/transparency/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-ink-900 dark:hover:text-white"
+            >
               Transparency
-            </Link>
+            </a>
             <Link href="/privacy" className="hover:text-ink-900 dark:hover:text-white">
               Privacy Policy
             </Link>

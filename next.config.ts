@@ -42,7 +42,11 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      { source: "/links", destination: "/docs", permanent: true },
+      // The docs live on the MkDocs site. Old /docs links (including the
+      // pages this site used to mirror) go straight to the matching page.
+      { source: "/docs", destination: "https://docs.gulfcoastmesh.org/", permanent: true },
+      { source: "/docs/:slug+", destination: "https://docs.gulfcoastmesh.org/:slug+/", permanent: true },
+      { source: "/links", destination: "https://docs.gulfcoastmesh.org/", permanent: true },
       { source: "/reports", destination: "/mesh-monitor#reports", permanent: false },
       { source: "/duplicates", destination: "/mesh-monitor#duplicates", permanent: false },
     ];

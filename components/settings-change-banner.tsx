@@ -1,7 +1,6 @@
-import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
 
-const SETTINGS_DOCS_HREF = "/docs/freq-settings";
+const SETTINGS_DOCS_HREF = "https://docs.gulfcoastmesh.org/freq-settings/";
 
 export function SettingsChangeBanner() {
   return (
@@ -15,12 +14,14 @@ export function SettingsChangeBanner() {
         <p>
           Our MeshCore settings changed to the network defaults on May 25, 2026. Please update your nodes
           and repeater settings if you have not already.{" "}
-          <Link
+          <a
             href={SETTINGS_DOCS_HREF}
+            target="_blank"
+            rel="noopener noreferrer"
             className="font-medium text-gulf-700 underline-offset-2 hover:underline dark:text-gulf-300"
           >
             See our docs
-          </Link>
+          </a>
         </p>
       </div>
     </div>
