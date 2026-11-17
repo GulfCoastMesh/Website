@@ -214,11 +214,12 @@
     background: rgba(255, 255, 255, 0.06);
   }
 
-  /* ---- Docs prose ---- */
-  /* Wraps rendered Markdown on /docs. Built on @tailwindcss/typography so the
-     default `prose` styles cover lists, tables, code, etc., but every visible
-     color/font is re-bound to the site's design tokens so it matches the
-     surrounding marketing pages in both light and dark mode. */
+  /* ---- Long-form prose ---- */
+  /* Styles long-form text: rendered meeting-notes Markdown and the privacy
+     policy. Built on @tailwindcss/typography so the default `prose` styles
+     cover lists, tables, code, etc., but every visible color/font is
+     re-bound to the site's design tokens so it matches the surrounding
+     marketing pages in both light and dark mode. */
   .prose-mesh {
     @apply prose max-w-none;
     color: rgb(var(--fg));
@@ -277,14 +278,6 @@
 
   .prose-mesh a:hover {
     @apply underline;
-  }
-
-  /* The autolink wrapper rehype-autolink-headings adds around headings: keep
-     headings looking like headings, no underline, no color shift. */
-  .prose-mesh a.doc-heading-anchor,
-  .prose-mesh a.doc-heading-anchor:hover {
-    @apply no-underline;
-    color: inherit;
   }
 
   .prose-mesh img {

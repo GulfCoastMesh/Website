@@ -41,7 +41,7 @@ const steps = [
     title: "Pick your hardware",
     body: "New to LoRa? Start with our recommended devices so your first radio just works.",
     links: [
-      { label: "Recommended devices", href: "/docs/devicerecs", internal: true },
+      { label: "Recommended devices", href: "https://docs.gulfcoastmesh.org/devicerecs/", internal: false },
     ],
   },
   {
@@ -51,8 +51,8 @@ const steps = [
     body: "Get a MeshCore companion on your belt or in your bag, paired with your phone, ready to message neighbors.",
     links: [
       { label: "Setup wizard", href: "/setup", internal: true },
-      { label: "Companion setup guide", href: "/docs/setting-up-meshcore-companion", internal: true },
-      { label: "Frequency settings", href: "/docs/freq-settings", internal: true },
+      { label: "Companion setup guide", href: "https://docs.gulfcoastmesh.org/setting-up-meshcore-companion/", internal: false },
+      { label: "Frequency settings", href: "https://docs.gulfcoastmesh.org/freq-settings/", internal: false },
     ],
   },
   {
@@ -62,8 +62,8 @@ const steps = [
     body: "Have a place with sky? Run a repeater and extend the network. We’ll help you plan, build, and tune it.",
     links: [
       { label: "Setup wizard", href: "/setup", internal: true },
-      { label: "Repeater setup", href: "/docs/meshcore-repeater-setup", internal: true },
-      { label: "Estimate coverage", href: "/docs/estimate-coverage-with-meshmapper", internal: true },
+      { label: "Repeater setup", href: "https://docs.gulfcoastmesh.org/meshcore-repeater-setup/", internal: false },
+      { label: "Estimate coverage", href: "https://docs.gulfcoastmesh.org/estimate-coverage-with-meshmapper/", internal: false },
     ],
   },
 ];
@@ -154,13 +154,15 @@ export default async function HomePage() {
                 See the live map
                 <MapIcon className="h-4 w-4 opacity-80" aria-hidden />
               </Link>
-              <Link
-                href="/docs"
+              <a
+                href="https://docs.gulfcoastmesh.org"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="group ml-1 inline-flex items-center gap-1.5 text-sm font-medium text-ink-700 hover:text-ink-950 dark:text-ink-200 dark:hover:text-white"
               >
                 Read the docs
                 <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden />
-              </Link>
+              </a>
             </div>
 
             <p className="mt-5 inline-flex items-center gap-2 text-xs text-ink-600 dark:text-ink-300">

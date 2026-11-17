@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useSyncExternalStore } from "react";
 import { AlertTriangle, ArrowRight, X } from "lucide-react";
 
@@ -8,7 +7,7 @@ import { AlertTriangle, ArrowRight, X } from "lucide-react";
 // users see the new notice. Keeping a structured key (`scope:topic:version`)
 // makes that bookkeeping obvious.
 const STORAGE_KEY = "gcm:network-update:sf7-may25-v2:dismissed";
-const DOCS_HREF = "/docs/freq-settings";
+const DOCS_HREF = "https://docs.gulfcoastmesh.org/freq-settings/";
 const DISCORD_HREF = "https://discord.gulfcoastmesh.org";
 
 const listeners = new Set<() => void>();
@@ -135,13 +134,15 @@ export function NetworkUpdateModal() {
             connection to the mesh
           </span>
           . Check our{" "}
-          <Link
+          <a
             href={DOCS_HREF}
+            target="_blank"
+            rel="noopener noreferrer"
             onClick={dismiss}
             className="font-semibold text-gulf-700 underline-offset-2 hover:underline dark:text-gulf-200"
           >
             docs
-          </Link>{" "}
+          </a>{" "}
           or join our{" "}
           <a
             href={DISCORD_HREF}
@@ -155,10 +156,16 @@ export function NetworkUpdateModal() {
         </p>
 
         <div className="mt-7 flex flex-wrap items-center gap-3">
-          <Link href={DOCS_HREF} onClick={dismiss} className="btn-primary">
+          <a
+            href={DOCS_HREF}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={dismiss}
+            className="btn-primary"
+          >
             View docs
             <ArrowRight className="h-4 w-4" aria-hidden />
-          </Link>
+          </a>
           <a
             href={DISCORD_HREF}
             target="_blank"
